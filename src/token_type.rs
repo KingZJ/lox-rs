@@ -1,20 +1,20 @@
 #[derive(Debug)]
 pub enum TokenType {
     // single character tokens
-    LeftParen,
+    LeftParen, // (
     RightParen,
-    LeftBrace,
+    LeftBrace, // {
     RightBrace,
-    Comma,
-    Dot,
+    Comma, // ,
+    Dot,   // .
     Minus,
     Plus,
-    SemiColon,
+    SemiColon, // ;
     Slash,
     Star,
 
     // one or two character tokens
-    Bang,
+    Bang, // !
     BangEqual,
     Equal,
     EqualEqual,
@@ -33,7 +33,7 @@ pub enum TokenType {
     Class,
     Else,
     False,
-    Fun,
+    Func,
     For,
     If,
     Nil,
@@ -47,5 +47,4 @@ pub enum TokenType {
     While,
 
     Eof,
-
 }

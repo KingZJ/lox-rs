@@ -1,30 +1,33 @@
 use std::env::args;
-use std::io::{Read, BufReader, self, BufRead};
 use std::fs::File;
+use std::io::{self, BufRead, Read, Write};
 use std::str;
 
+use lox_ast::error::LoxError;
 use lox_ast::scanner::Scanner;
 fn main() {
     println!("Hello, world!");
 
     let args: Vec<String> = args().collect();
-    if args.len() > 1 {
+    if args.len() > 2 {
         println!("Usage: lox-ast [script]");
         std::process::exit(64);
-    } else if args.len() == 1 {
-        run_file(&args[0]).expect("cannot run file");
+    } else if args.len() == 2 {
+        run_file(&args[1]).expect("cannot run file");
     } else {
         run_prompt();
     }
 }
 
 fn run_file(path: &str) -> io::Result<()> {
-    let f = File::open(path).expect("cannot open file");
-    let mut reader = BufReader::new(f);
-    let mut buf = Vec::new();
+    let mut f = File::open(path).expect("cannot open file");
+    let mut buf = String::new();
 
-    reader.read_to_end(&mut buf)?;
-    run(&buf);
+    f.read_to_string(&mut buf)?;
+    match run(buf) {
+        Ok(_) => (),
+        Err(e) => eprintln!("{:?}", e),
+    }
 
     Ok(())
 }
@@ -32,22 +35,31 @@ fn run_file(path: &str) -> io::Result<()> {
 fn run_prompt() {
     let stdin = io::stdin();
     loop {
-        println!(">");
+        print!("> ");
+        io::stdout().flush().unwrap();
 
         for line in stdin.lock().lines() {
             let line_content = line.unwrap();
             if line_content.is_empty() {
                 break;
             }
-            run(line_content.as_bytes());
+            match run(line_content) {
+                Ok(_) => (),
+                Err(e) => eprintln!("{:?}", e),
+            }
+
+            print!("> ");
+            io::stdout().flush().unwrap();
         }
     }
 }
 
-fn run(source: &[u8]) {
-    let mut scanner = Scanner::new(String::from(str::from_utf8(source).unwrap()));
-    for i_byte in scanner.scan_tokens().unwrap() {
-        println!("{}", i_byte);
+fn run(source: String) -> Result<(), LoxError> {
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens()?;
+    for i_byte in tokens {
+        println!("{:?}", i_byte);
     }
-}
 
+    Ok(())
+}

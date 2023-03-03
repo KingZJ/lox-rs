@@ -1,5 +1,7 @@
 use super::token_type::TokenType;
 use std::fmt;
+
+#[derive(Debug)]
 pub enum Object {
     Number(f64),
     Str(String),
@@ -20,6 +22,7 @@ impl fmt::Display for Object {
     }
 }
 
+#[derive(Debug)]
 pub struct Token {
     tk_type: TokenType,
     lexeme: String,
@@ -29,11 +32,21 @@ pub struct Token {
 
 impl Token {
     pub fn new(tk_type: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Self {
-        Self { tk_type, lexeme, literal, line }
+        Self {
+            tk_type,
+            lexeme,
+            literal,
+            line,
+        }
     }
 
     pub fn eof(line: usize) -> Self {
-        Self { tk_type: TokenType::Eof, lexeme: "".to_owned(), literal: None, line }
+        Self {
+            tk_type: TokenType::Eof,
+            lexeme: "".to_owned(),
+            literal: None,
+            line,
+        }
     }
 }
 

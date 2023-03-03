@@ -1,11 +1,11 @@
 #[derive(Debug)]
 pub struct LoxError {
-    line: u32,
+    line: usize,
     message: String,
 }
 
 impl LoxError {
-    pub fn error(line: u32, message: String) -> Self {
+    pub fn error(line: usize, message: String) -> Self {
         Self { line, message }
     }
 
