@@ -62,6 +62,7 @@ impl Scanner {
                     self.add_token(tk_type);
                 }
                 '/' => {
+                    // TODO 块注释
                     if self.is_match('/') {
                         // comment
 
