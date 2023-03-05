@@ -10,6 +10,6 @@ impl LoxError {
     }
 
     pub fn report(&self, loc: &str) {
-        println!("[line: {}], Error {}: {}", self.line, loc, self.message);
+        eprintln!("[line: {}], Error {}: {}", self.line, loc, self.message);
     }
 }

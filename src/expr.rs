@@ -1,5 +1,5 @@
-use crate::token::{Token, Object};
 use crate::error::LoxError;
+use crate::token::{Object, Token};
 // use std::io::BufRead;
 pub enum Expr {
     Binary(BinaryExpr),
@@ -9,12 +9,12 @@ pub enum Expr {
 }
 
 impl Expr {
-    fn accept<T>(&self, visitor: Box<&dyn ExprVisitor<T>>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: Box<&dyn ExprVisitor<T>>) -> Result<T, LoxError> {
         match self {
-            Expr::Binary(b) => b.accept(visitor),    
-            Expr::Grouping(b) => b.accept(visitor),    
-            Expr::Literal(b) => b.accept(visitor),    
-            Expr::Unary(b) => b.accept(visitor),    
+            Expr::Binary(b) => b.accept(visitor),
+            Expr::Grouping(b) => b.accept(visitor),
+            Expr::Literal(b) => b.accept(visitor),
+            Expr::Unary(b) => b.accept(visitor),
         }
     }
 }
@@ -22,9 +22,9 @@ impl Expr {
 // type LoxError = String;
 
 pub struct BinaryExpr {
-    left: Box<Expr>,
-    operator: Token,  // Token
-    right: Box<Expr>,
+    pub left: Box<Expr>,
+    pub operator: Token, // Token
+    pub right: Box<Expr>,
 }
 
 impl BinaryExpr {
@@ -34,7 +34,7 @@ impl BinaryExpr {
 }
 
 pub struct GroupingExpr {
-    expression: Box<Expr>,
+    pub expression: Box<Expr>,
 }
 
 impl GroupingExpr {
@@ -43,9 +43,8 @@ impl GroupingExpr {
     }
 }
 
-
 pub struct LiteralExpr {
-    value: Object,
+    pub value: Object,
 }
 
 impl LiteralExpr {
@@ -55,8 +54,8 @@ impl LiteralExpr {
 }
 
 pub struct UnaryExpr {
-    operator: Token,
-    right: Box<Expr>,
+    pub operator: Token,
+    pub right: Box<Expr>,
 }
 
 impl UnaryExpr {

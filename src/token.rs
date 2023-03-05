@@ -10,6 +10,19 @@ pub enum Object {
     False,
 }
 
+impl Clone for Object {
+    fn clone(&self) -> Self {
+        match self {
+            Object::Number(value) => Object::Number(*value),
+            Object::Str(value) => Object::Str(String::from(value)),
+            // obj @ _ => *obj,
+            Object::False => Object::False,
+            Object::Nil => Object::Nil,
+            Object::True => Object::True,
+        }
+    }
+}
+
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -24,10 +37,10 @@ impl fmt::Display for Object {
 
 #[derive(Debug)]
 pub struct Token {
-    tk_type: TokenType,
-    lexeme: String,
-    literal: Option<Object>,
-    line: usize,
+    pub tk_type: TokenType,
+    pub lexeme: String,
+    pub literal: Option<Object>,
+    pub line: usize,
 }
 
 impl Token {
@@ -46,6 +59,17 @@ impl Token {
             lexeme: "".to_owned(),
             literal: None,
             line,
+        }
+    }
+}
+
+impl Clone for Token {
+    fn clone(&self) -> Self {
+        Self {
+            tk_type: self.tk_type,
+            lexeme: String::from(&self.lexeme),
+            literal: self.literal.clone(),
+            line: self.line,
         }
     }
 }
