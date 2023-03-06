@@ -137,4 +137,48 @@ impl Interpreter {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use crate::{expr::{Expr, BinaryExpr}, token::{Object, Token}, token_type::TokenType};
+
+    use super::Interpreter;
+
+    fn make_literal(value: Object) -> Box<Expr> {
+        Box::new(Expr::Literal(crate::expr::LiteralExpr { value }))
+    }
+
+    #[test]
+    fn test_binary_add() {
+        let left = make_literal(Object::Number(15.0));
+        let right = make_literal(Object::Number(15.0));
+        let operator = Token::new(TokenType::Plus, "+".to_string(), None, 10);
+        let expr = Expr::Binary(BinaryExpr{left, operator, right});
+
+        let interpreter = Interpreter{};
+        let res = interpreter.evaluate(&expr);
+        assert!(res.is_ok());
+        assert_eq!(res.ok(), Some(Object::Number(30.0)));
+    }
+
+    #[test]
+    fn test_comparison() {
+        let operator = Token::new(TokenType::EqualEqual, "==".to_string(), None, 10);
+        let expected: Vec<Object> = vec![Object::False, Object::True, Object::False];
+        // expected.push(make_literal(value))
+        test_binary_num(20.0, &operator, expected);
+    }
+
+    fn test_binary_num(left: f64, operator: &Token, expected: Vec<Object>) {
+        let num = vec![5.0, 20.0, 50.0];
+        for (b, right) in expected.iter().zip(num) {
+            let left = make_literal(Object::Number(left));
+            let right = make_literal(Object::Number(right));
+            
+            let expr = Expr::Binary(BinaryExpr{left, operator: operator.clone(), right});
+
+            let interpreter = Interpreter{};
+            let res = interpreter.evaluate(&expr);
+            assert!(res.is_ok());
+            assert_eq!(res.ok(), Some(b.clone()));
+        }
+    }
+}
