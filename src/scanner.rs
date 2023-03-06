@@ -65,17 +65,6 @@ impl Scanner {
                     // TODO 块注释
                     if self.is_match('/') {
                         // comment
-
-                        // loop {
-                        //     println!("{:?}", self.peek());
-                        //     match self.peek() {
-                        //         Some(c) if c != '\n' => {
-                        //             self.advance();
-                        //             // continue;
-                        //         },
-                        //         _ => break,
-                        //     }
-                        // }
                         while let Some(c) = self.peek() {
                             if c != '\n' {
                                 self.advance();
@@ -86,6 +75,30 @@ impl Scanner {
                     } else {
                         self.add_token(TokenType::Slash);
                     }
+                }
+                '=' => {
+                    let tk_type = if self.is_match('=') {
+                        TokenType::EqualEqual
+                    } else {
+                        TokenType::Equal
+                    };
+                    self.add_token(tk_type);
+                }
+                '>' => {
+                    let tk_type = if self.is_match('=') {
+                        TokenType::GreaterEqual
+                    } else {
+                        TokenType::Greater
+                    };
+                    self.add_token(tk_type);
+                }
+                '<' => {
+                    let tk_type = if self.is_match('=') {
+                        TokenType::LessEqual
+                    } else {
+                        TokenType::Less
+                    };
+                    self.add_token(tk_type);
                 }
                 c => {
                     if c.is_ascii_digit() {

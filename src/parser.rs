@@ -125,7 +125,10 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        self.peek().unwrap().tk_type == TokenType::Eof
+        match self.peek() {
+            None => true,
+            Some(token) => token.tk_type == TokenType::Eof,
+        }
     }
 
     fn advance(&mut self) {
