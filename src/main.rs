@@ -4,6 +4,8 @@ use std::io::{self, BufRead, Read, Write};
 use std::str;
 
 use lox_ast::error::LoxError;
+use lox_ast::interpreter::Interpreter;
+use lox_ast::parser::Parser;
 use lox_ast::scanner::Scanner;
 fn main() {
     println!("Hello, world!");
@@ -57,9 +59,14 @@ fn run_prompt() {
 fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
-    for i_byte in tokens {
-        println!("{:?}", i_byte);
-    }
+    let mut parser = Parser::new(tokens);
+    // println!("{:?}", parser.parse());
+    let interpreter = Interpreter {};
+    interpreter.interpreter(&parser.parse().unwrap());
+
+    // for i_byte in tokens {
+    //     println!("{:?}", i_byte);
+    // }
 
     Ok(())
 }

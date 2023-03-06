@@ -9,8 +9,15 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
+    pub fn new(tokens: &Vec<Token>) -> Self {
+        let mut own_tokens: Vec<Token> = vec![];
+        for token in tokens {
+            own_tokens.push(token.clone())
+        }
+        Self {
+            tokens: own_tokens,
+            current: 0,
+        }
     }
 
     pub fn parse(&mut self) -> Option<Expr> {
@@ -21,17 +28,17 @@ impl Parser {
     }
 
     fn peek(&self) -> Option<Token> {
-        match self.tokens.get(self.current) {
-            None => None,
-            Some(token) => Some(token.clone()),
-        }
+        // match self.tokens.get(self.current) {
+        //     None => None,
+        //     Some(token) => Some(token.clone()),
+        // }
+
+        // self.tokens.get(self.current).map(|token| token.clone())
+        self.tokens.get(self.current).cloned()
     }
 
     fn previous(&self) -> Option<Token> {
-        match self.tokens.get(self.current - 1) {
-            None => None,
-            Some(token) => Some(token.clone()),
-        }
+        self.tokens.get(self.current - 1).cloned()
     }
 
     fn is_match(&mut self, types: &Vec<TokenType>) -> bool {
@@ -71,7 +78,7 @@ impl Parser {
             let right = self.comparison()?;
             left = Expr::Binary(BinaryExpr {
                 left: Box::new(left),
-                operator: operator,
+                operator,
                 right: Box::new(right),
             });
         }
@@ -93,7 +100,7 @@ impl Parser {
             let right = self.term()?;
             left = Expr::Binary(BinaryExpr {
                 left: Box::new(left),
-                operator: operator,
+                operator,
                 right: Box::new(right),
             });
         }
@@ -110,7 +117,7 @@ impl Parser {
             let right = self.factor()?;
             left = Expr::Binary(BinaryExpr {
                 left: Box::new(left),
-                operator: operator,
+                operator,
                 right: Box::new(right),
             });
         }
@@ -127,7 +134,7 @@ impl Parser {
             let right = self.unary()?;
             left = Expr::Binary(BinaryExpr {
                 left: Box::new(left),
-                operator: operator,
+                operator,
                 right: Box::new(right),
             });
         }
@@ -142,7 +149,7 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.unary()?;
             return Ok(Expr::Unary(UnaryExpr {
-                operator: operator,
+                operator,
                 right: Box::new(right),
             }));
         }
@@ -153,24 +160,24 @@ impl Parser {
     // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
     fn primary(&mut self) -> Result<Expr, LoxError> {
         if self.is_match(&vec![TokenType::Number, TokenType::String]) {
-            let value = self.peek().unwrap().literal.unwrap();
-            return Ok(Expr::Literal(LiteralExpr { value }));
+            let value = self.previous().unwrap().literal.unwrap();
+            Ok(Expr::Literal(LiteralExpr { value }))
         } else if self.is_match(&vec![TokenType::False]) {
-            return Ok(Expr::Literal(LiteralExpr {
+            Ok(Expr::Literal(LiteralExpr {
                 value: Object::False,
-            }));
+            }))
         } else if self.is_match(&vec![TokenType::True]) {
-            return Ok(Expr::Literal(LiteralExpr {
+            Ok(Expr::Literal(LiteralExpr {
                 value: Object::True,
-            }));
+            }))
         } else if self.is_match(&vec![TokenType::Nil]) {
-            return Ok(Expr::Literal(LiteralExpr { value: Object::Nil }));
+            Ok(Expr::Literal(LiteralExpr { value: Object::Nil }))
         } else if self.is_match(&vec![TokenType::LeftParen]) {
             let expr = self.expression()?;
             self.consume(TokenType::RightParen, "expect `)` after expression")?;
-            return Ok(Expr::Grouping(GroupingExpr {
+            Ok(Expr::Grouping(GroupingExpr {
                 expression: Box::new(expr),
-            }));
+            }))
         } else {
             let line = self.peek().unwrap().line;
             let message = "failed primary parse".to_string();

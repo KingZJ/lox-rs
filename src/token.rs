@@ -15,7 +15,6 @@ impl Clone for Object {
         match self {
             Object::Number(value) => Object::Number(*value),
             Object::Str(value) => Object::Str(String::from(value)),
-            // obj @ _ => *obj,
             Object::False => Object::False,
             Object::Nil => Object::Nil,
             Object::True => Object::True,

@@ -87,7 +87,7 @@ impl Scanner {
                         self.add_token(TokenType::Slash);
                     }
                 }
-                c @ _ => {
+                c => {
                     if c.is_ascii_digit() {
                         self.number();
                     } else if c.is_ascii_alphabetic() || c == '_' {
@@ -96,7 +96,7 @@ impl Scanner {
                         // unreachable!("unmatched token type");
                         return Err(LoxError::error(
                             self.line,
-                            "unmatched token type".to_string(),
+                            format!("scanner error unmatched token type `{c}`"),
                         ));
                     }
                 }
@@ -126,7 +126,10 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            return Err(LoxError::error(self.line, "Unterminated string".to_owned()));
+            return Err(LoxError::error(
+                self.line,
+                "scanner error Unterminated string".to_owned(),
+            ));
         }
 
         self.advance(); // close "
@@ -212,9 +215,7 @@ impl Scanner {
     }
 
     fn is_match(&mut self, expected: char) -> bool {
-        if self.is_at_end() {
-            false
-        } else if self.peek() != Some(expected) {
+        if self.is_at_end() || self.peek() != Some(expected) {
             false
         } else {
             self.current += 1;
