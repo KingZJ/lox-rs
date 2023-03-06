@@ -28,7 +28,10 @@ fn run_file(path: &str) -> io::Result<()> {
     f.read_to_string(&mut buf)?;
     match run(buf) {
         Ok(_) => (),
-        Err(e) => eprintln!("{:?}", e),
+        Err(e) => {
+            eprintln!("{:?}", e);
+            std::process::exit(64);
+        }
     }
 
     Ok(())
@@ -47,7 +50,10 @@ fn run_prompt() {
             }
             match run(line_content) {
                 Ok(_) => (),
-                Err(e) => eprintln!("{:?}", e),
+                Err(e) => {
+                    eprintln!("{:?}", e);
+                    // std::process::exit(64);
+                }
             }
 
             print!("> ");
@@ -59,14 +65,14 @@ fn run_prompt() {
 fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
-    let mut parser = Parser::new(tokens);
-    // println!("{:?}", parser.parse());
-    let interpreter = Interpreter {};
-    interpreter.interpreter(&parser.parse().unwrap());
 
-    // for i_byte in tokens {
-    //     println!("{:?}", i_byte);
-    // }
+    for i_byte in tokens {
+        println!("{:?}", i_byte);
+    }
+
+    let mut parser = Parser::new(tokens);
+    let interpreter = Interpreter {};
+    interpreter.interpreter(&parser.parse()?);
 
     Ok(())
 }

@@ -1,4 +1,5 @@
-use crate::expr::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr};
+use crate::expr::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr, VariableExpr};
+use crate::stmt::{ExpressionStmt, PrintStmt, Stmt, VarStmt};
 use crate::token::Object;
 use crate::token_type::TokenType;
 use crate::{error::LoxError, token::Token};
@@ -20,11 +21,78 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Option<Expr> {
-        match self.expression() {
-            Ok(expr) => Some(expr),
-            Err(_) => None,
+    // pub fn parse(&mut self) -> Option<Expr> {
+    //     match self.expression() {
+    //         Ok(expr) => Some(expr),
+    //         Err(_) => None,
+    //     }
+    // }
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        self.program()
+    }
+
+    //  program        → declaration* EOF ;
+    fn program(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements: Vec<Stmt> = vec![];
+        while !self.is_at_end() {
+            statements.push(self.declaration()?);
         }
+
+        Ok(statements)
+    }
+
+    //  declaration    → varDecl | statement ;
+    fn declaration(&mut self) -> Result<Stmt, LoxError> {
+        let result = if self.is_match(&vec![TokenType::Var]) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        };
+
+        if result.is_err() {
+            self.synchronize();
+        }
+
+        result
+    }
+
+    //  varDecl        → "var" IDENTIFIER ( "=" expression )? ";"
+    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, "expect variable name")?;
+        let initializer = if self.is_match(&vec![TokenType::Equal]) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+        self.consume(
+            TokenType::SemiColon,
+            "expect `;` after variable declaration",
+        )?;
+
+        Ok(Stmt::Var(VarStmt { name, initializer }))
+    }
+
+    // statement      → exprStmt | printStmt ;
+    fn statement(&mut self) -> Result<Stmt, LoxError> {
+        if self.is_match(&vec![TokenType::Print]) {
+            self.print_statement()
+        } else {
+            self.expr_statement()
+        }
+    }
+
+    // printStmt      → "print" expression ";"
+    fn print_statement(&mut self) -> Result<Stmt, LoxError> {
+        let expression = self.expression()?;
+        self.consume(TokenType::SemiColon, "expect `;` after expression")?;
+        Ok(Stmt::Print(PrintStmt { expression }))
+    }
+
+    // exprStmt       → expression ";"
+    fn expr_statement(&mut self) -> Result<Stmt, LoxError> {
+        let expression = self.expression()?;
+        self.consume(TokenType::SemiColon, "expect `;` after expression")?;
+        Ok(Stmt::Expression(ExpressionStmt { expression }))
     }
 
     fn peek(&self) -> Option<Token> {
@@ -172,6 +240,10 @@ impl Parser {
             }))
         } else if self.is_match(&vec![TokenType::Nil]) {
             Ok(Expr::Literal(LiteralExpr { value: Object::Nil }))
+        } else if self.is_match(&vec![TokenType::Identifier]) {
+            Ok(Expr::Variable(VariableExpr {
+                name: self.previous().unwrap(),
+            }))
         } else if self.is_match(&vec![TokenType::LeftParen]) {
             let expr = self.expression()?;
             self.consume(TokenType::RightParen, "expect `)` after expression")?;
@@ -185,18 +257,18 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, tk_type: TokenType, message: &str) -> Result<(), LoxError> {
+    fn consume(&mut self, tk_type: TokenType, message: &str) -> Result<Token, LoxError> {
         if self.is_expect(tk_type) {
             self.advance();
-            return Ok(());
+            return Ok(self.previous().unwrap());
         }
         let token = self.peek().unwrap();
         let line = token.line;
         let mut message = message.to_string();
         if token.tk_type == TokenType::Eof {
-            message = format!("at end {}", message);
+            message = format!("parser error at end {}", message);
         } else {
-            message = format!("at `{}` {}", token.lexeme, message);
+            message = format!("parser error at `{}` {}", token.lexeme, message);
         }
 
         Err(LoxError::error(line, message))

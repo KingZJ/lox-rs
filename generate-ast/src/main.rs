@@ -21,10 +21,22 @@ fn main() {
         format!("Grouping : Box<{base_name}> expression"),
         "Literal : Object value".to_owned(),
         format!("Unary : Token operator, Box<{base_name}> right"),
+        "Variable : Token name".to_owned(),
     ];
     let notation = parse_notation(base_name, notation);
-    // println!("{:#?}", notation);
-    define_ast(output_dir, base_name, &notation).unwrap();
+    let import_mod = vec!["token", "error"];
+    define_ast(output_dir, base_name, &notation, &import_mod).unwrap();
+
+    // stmt
+    let base_name = "Stmt";
+    let notation = vec![
+        format!("Expression : Expr expression"),
+        format!("Print : Expr expression"),
+        format!("Var : Token name, Option<Expr> initializer"),
+    ];
+    let notation = parse_notation(base_name, notation);
+    let import_mod = vec!["expr", "token", "error"];
+    define_ast(output_dir, base_name, &notation, &import_mod).unwrap();
 }
 
 fn parse_notation(base_name: &str, notation: Vec<String>) -> Vec<Notation> {
@@ -52,13 +64,19 @@ fn parse_notation(base_name: &str, notation: Vec<String>) -> Vec<Notation> {
     result
 }
 
-fn define_ast(output_dir: &str, base_name: &str, notation: &Vec<Notation>) -> io::Result<()> {
+fn define_ast(
+    output_dir: &str,
+    base_name: &str,
+    notation: &Vec<Notation>,
+    import_mod: &Vec<&str>,
+) -> io::Result<()> {
     let path = format!("{output_dir}/{}.rs", base_name.to_lowercase());
     let f = fs::File::create(path)?;
     let mut buffer = io::BufWriter::new(f);
 
-    writeln!(buffer, "use crate::token::{{Token, Object}};")?;
-    writeln!(buffer, "use crate::error::LoxError;")?;
+    for mod_name in import_mod {
+        writeln!(buffer, "use crate::{mod_name}::*;")?;
+    }
 
     define_enum(&mut buffer, base_name, notation)?;
     define_impl_enum(&mut buffer, base_name, notation)?;
@@ -75,7 +93,8 @@ fn define_enum(
     base_name: &str,
     notation: &Vec<Notation>,
 ) -> io::Result<()> {
-    writeln!(buffer, "\npub enum {} {{", base_name)?;
+    writeln!(buffer, "\n#[derive(Debug)]")?;
+    writeln!(buffer, "pub enum {} {{", base_name)?;
     for item in notation {
         writeln!(buffer, "\t{0}({0}{1}),", item.derive_name, item.base_name)?;
     }
@@ -91,7 +110,7 @@ fn define_impl_enum(
     writeln!(buffer, "\nimpl {} {{", base_name)?;
     writeln!(
         buffer,
-        "\tpub fn accept<T>(&self, visitor: Box<&dyn {}Visitor<T>>) -> Result<T, LoxError> {{",
+        "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{",
         base_name
     )?;
     writeln!(buffer, "\t\tmatch self {{")?;
@@ -111,13 +130,14 @@ fn define_impl_enum(
 
 fn define_struct(buffer: &mut io::BufWriter<File>, notation: &Vec<Notation>) -> io::Result<()> {
     for item in notation {
+        writeln!(buffer, "\n#[derive(Debug)]")?;
         writeln!(
             buffer,
-            "\npub struct {}{} {{",
+            "pub struct {}{} {{",
             item.derive_name, item.base_name
         )?;
         for field in item.fields.iter() {
-            writeln!(buffer, "\t{}: {},", field.1, field.0)?;
+            writeln!(buffer, "\tpub {}: {},", field.1, field.0)?;
         }
         writeln!(buffer, "}}")?;
     }
@@ -134,7 +154,7 @@ fn define_impl_struct(
         writeln!(buffer, "\nimpl {}{} {{", item.derive_name, item.base_name)?;
         writeln!(
             buffer,
-            "\tpub fn accept<T>(&self, visitor: Box<&dyn {}Visitor<T>>) -> Result<T, LoxError> {{",
+            "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{",
             base_name
         )?;
         writeln!(
@@ -160,7 +180,7 @@ fn define_visitor(
     for item in notation {
         writeln!(
             buffer,
-            "\tpub fn visit_{}_{}(&self, {1}: &{}{}) -> Result<T, LoxError>;",
+            "\tfn visit_{}_{}(&self, {1}: &{}{}) -> Result<T, LoxError>;",
             item.derive_name.to_lowercase(),
             item.base_name.to_lowercase(),
             item.derive_name,

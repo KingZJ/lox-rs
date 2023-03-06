@@ -1,9 +1,9 @@
 use crate::error::LoxError;
-use crate::expr::{BinaryExpr, Expr, ExprVisitor, GroupingExpr, LiteralExpr, UnaryExpr};
+use crate::expr::{BinaryExpr, ExprVisitor, GroupingExpr, LiteralExpr, UnaryExpr};
 use crate::token::Object;
 use crate::token_type::TokenType;
 
-pub struct Interpreter {}
+use super::Interpreter;
 
 impl ExprVisitor<Object> for Interpreter {
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<Object, LoxError> {
@@ -54,25 +54,13 @@ impl ExprVisitor<Object> for Interpreter {
             _ => Ok(Object::Nil),
         }
     }
+
+    fn visit_variable_expr(&self, expr: &crate::expr::VariableExpr) -> Result<Object, LoxError> {
+        Ok(Object::Nil)
+    }
 }
 
 impl Interpreter {
-    pub fn interpreter(&self, expr: &Expr) -> Option<Object> {
-        match self.evaluate(expr) {
-            Ok(obj) => {
-                println!("evaluate value: {} primitive: {0:?}", obj);
-                Some(obj)
-            }
-            Err(e) => {
-                e.report("Runtime error");
-                None
-            }
-        }
-    }
-    fn evaluate(&self, expr: &Expr) -> Result<Object, LoxError> {
-        expr.accept(self)
-    }
-
     fn number_binary_evaluate(
         &self,
         left_num: f64,
@@ -138,7 +126,11 @@ impl Interpreter {
 
 #[cfg(test)]
 mod test {
-    use crate::{expr::{Expr, BinaryExpr}, token::{Object, Token}, token_type::TokenType};
+    use crate::{
+        expr::{BinaryExpr, Expr},
+        token::{Object, Token},
+        token_type::TokenType,
+    };
 
     use super::Interpreter;
 
@@ -151,9 +143,13 @@ mod test {
         let left = make_literal(Object::Number(15.0));
         let right = make_literal(Object::Number(15.0));
         let operator = Token::new(TokenType::Plus, "+".to_string(), None, 10);
-        let expr = Expr::Binary(BinaryExpr{left, operator, right});
+        let expr = Expr::Binary(BinaryExpr {
+            left,
+            operator,
+            right,
+        });
 
-        let interpreter = Interpreter{};
+        let interpreter = Interpreter {};
         let res = interpreter.evaluate(&expr);
         assert!(res.is_ok());
         assert_eq!(res.ok(), Some(Object::Number(30.0)));
@@ -172,10 +168,14 @@ mod test {
         for (b, right) in expected.iter().zip(num) {
             let left = make_literal(Object::Number(left));
             let right = make_literal(Object::Number(right));
-            
-            let expr = Expr::Binary(BinaryExpr{left, operator: operator.clone(), right});
 
-            let interpreter = Interpreter{};
+            let expr = Expr::Binary(BinaryExpr {
+                left,
+                operator: operator.clone(),
+                right,
+            });
+
+            let interpreter = Interpreter {};
             let res = interpreter.evaluate(&expr);
             assert!(res.is_ok());
             assert_eq!(res.ok(), Some(b.clone()));

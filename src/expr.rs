@@ -1,12 +1,13 @@
-use crate::error::LoxError;
-use crate::token::{Object, Token};
-// use std::io::BufRead;
+use crate::error::*;
+use crate::token::*;
+
 #[derive(Debug)]
 pub enum Expr {
     Binary(BinaryExpr),
     Grouping(GroupingExpr),
     Literal(LiteralExpr),
     Unary(UnaryExpr),
+    Variable(VariableExpr),
 }
 
 impl Expr {
@@ -16,22 +17,16 @@ impl Expr {
             Expr::Grouping(b) => b.accept(visitor),
             Expr::Literal(b) => b.accept(visitor),
             Expr::Unary(b) => b.accept(visitor),
+            Expr::Variable(b) => b.accept(visitor),
         }
     }
 }
 
-// type LoxError = String;
 #[derive(Debug)]
 pub struct BinaryExpr {
     pub left: Box<Expr>,
-    pub operator: Token, // Token
+    pub operator: Token,
     pub right: Box<Expr>,
-}
-
-impl BinaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
-        visitor.visit_binary_expr(self)
-    }
 }
 
 #[derive(Debug)]
@@ -39,21 +34,9 @@ pub struct GroupingExpr {
     pub expression: Box<Expr>,
 }
 
-impl GroupingExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
-        visitor.visit_grouping_expr(self)
-    }
-}
-
 #[derive(Debug)]
 pub struct LiteralExpr {
     pub value: Object,
-}
-
-impl LiteralExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
-        visitor.visit_literal_expr(self)
-    }
 }
 
 #[derive(Debug)]
@@ -62,9 +45,38 @@ pub struct UnaryExpr {
     pub right: Box<Expr>,
 }
 
+#[derive(Debug)]
+pub struct VariableExpr {
+    pub name: Token,
+}
+
+impl BinaryExpr {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_binary_expr(self)
+    }
+}
+
+impl GroupingExpr {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_grouping_expr(self)
+    }
+}
+
+impl LiteralExpr {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_literal_expr(self)
+    }
+}
+
 impl UnaryExpr {
-    fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
         visitor.visit_unary_expr(self)
+    }
+}
+
+impl VariableExpr {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {
+        visitor.visit_variable_expr(self)
     }
 }
 
@@ -73,4 +85,5 @@ pub trait ExprVisitor<T> {
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<T, LoxError>;
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<T, LoxError>;
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<T, LoxError>;
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<T, LoxError>;
 }
