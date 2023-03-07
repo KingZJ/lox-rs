@@ -75,6 +75,18 @@ impl ExprVisitor<Object> for Interpreter {
 
         Ok(value)
     }
+
+    fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<Object, LoxError> {
+        let left = self.evaluate(&expr.left)?;
+
+        if (expr.operator.is(TokenType::Or) && self.is_truthy(&left))
+            || (expr.operator.is(TokenType::And) && !self.is_truthy(&left))
+        {
+            Ok(left)
+        } else {
+            self.evaluate(&expr.right)
+        }
+    }
 }
 
 impl Interpreter {

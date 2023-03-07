@@ -61,6 +61,10 @@ impl Token {
         }
     }
 
+    pub fn is(&self, expect: TokenType) -> bool {
+        self.tk_type == expect
+    }
+
     pub fn as_string(&self) -> String {
         self.lexeme.clone()
     }

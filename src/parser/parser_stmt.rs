@@ -1,0 +1,128 @@
+use super::Parser;
+
+use crate::error::LoxError;
+use crate::stmt::*;
+use crate::token_type::TokenType;
+
+impl Parser {
+    //  program        → declaration* EOF ;
+    pub fn program(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements: Vec<Stmt> = vec![];
+        while !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        Ok(statements)
+    }
+
+    //  declaration    → varDecl | statement ;
+    fn declaration(&mut self) -> Result<Stmt, LoxError> {
+        let result = if self.is_match(&vec![TokenType::Var]) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        };
+
+        if result.is_err() {
+            self.synchronize();
+        }
+
+        result
+    }
+
+    //  varDecl        → "var" IDENTIFIER ( "=" expression )? ";"
+    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, "expect variable name")?;
+        let initializer = if self.is_match(&vec![TokenType::Equal]) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+        self.consume(
+            TokenType::SemiColon,
+            "expect `;` after variable declaration",
+        )?;
+
+        Ok(Stmt::Var(VarStmt { name, initializer }))
+    }
+
+    // statement      → exprStmt | printStmt ;
+    // statement      → exprStmt | printStmt | block ;
+    // statement      → exprStmt | ifStmt | printStmt | block ;
+    // statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
+    fn statement(&mut self) -> Result<Stmt, LoxError> {
+        if self.is_match(&vec![TokenType::While]) {
+            self.while_statement()
+        } else if self.is_match(&vec![TokenType::If]) {
+            self.if_statement()
+        } else if self.is_match(&vec![TokenType::LeftBrace]) {
+            Ok(Stmt::Block(BlockStmt {
+                statements: self.block()?,
+            }))
+        } else if self.is_match(&vec![TokenType::Print]) {
+            self.print_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    // whileStmt      → "while" "(" expression ")" statement ;
+    fn while_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "expect `(` after while")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "expect `)` after condition")?;
+
+        let body = self.statement()?;
+
+        Ok(Stmt::While(WhileStmt {
+            condition,
+            body: Box::new(body),
+        }))
+    }
+
+    // ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "parser error expect `(` after if")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "parser error expect `)`")?;
+        let then_branch = Box::new(self.statement()?);
+
+        let else_branch = if self.is_match(&vec![TokenType::Else]) {
+            Some(Box::new(self.statement()?))
+        } else {
+            None
+        };
+
+        Ok(Stmt::If(IfStmt {
+            condition,
+            then_branch,
+            else_branch,
+        }))
+    }
+
+    // block          → "{" declaration* "}" ;
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements: Vec<Stmt> = vec![];
+        while !self.is_expect(TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "expected `}`")?;
+
+        Ok(statements)
+    }
+
+    // printStmt      → "print" expression ";"
+    fn print_statement(&mut self) -> Result<Stmt, LoxError> {
+        let expression = self.expression()?;
+        self.consume(TokenType::SemiColon, "expect `;` after expression")?;
+        Ok(Stmt::Print(PrintStmt { expression }))
+    }
+
+    // exprStmt       → expression ";"
+    fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
+        let expression = self.expression()?;
+        self.consume(TokenType::SemiColon, "expect `;` after expression")?;
+        Ok(Stmt::Expression(ExpressionStmt { expression }))
+    }
+}

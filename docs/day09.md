@@ -21,3 +21,14 @@ varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 ### if statement
 statement      → exprStmt | ifStmt | printStmt | block ;
 ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+
+
+### or and 
+expression     → assignment ;
+assignment     → IDENTIFIER "=" assignment | logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
+
+### while statement
+statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
+whileStmt      → "while" "(" expression ")" statement ;

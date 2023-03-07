@@ -41,13 +41,21 @@ impl StmtVisitor<()> for Interpreter {
     }
 
     fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<(), LoxError> {
-        if self.is_truthy(self.evaluate(&stmt.condition)?) {
+        if self.is_truthy(&self.evaluate(&stmt.condition)?) {
             self.execute(&stmt.then_branch)
         } else if let Some(ref else_branch) = stmt.else_branch {
             self.execute(else_branch)
         } else {
             Ok(())
         }
+    }
+
+    fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<(), LoxError> {
+        while self.is_truthy(&self.evaluate(&stmt.condition)?) {
+            self.execute(&stmt.body)?;
+        }
+
+        Ok(())
     }
 }
 

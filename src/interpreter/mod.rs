@@ -29,7 +29,7 @@ impl Interpreter {
         println!("{:?}", self.environment);
     }
 
-    fn is_truthy(&self, obj: Object) -> bool {
+    fn is_truthy(&self, obj: &Object) -> bool {
         // match obj {
         //     Object::False | Object::Nil => false,
         //     _ => true,
@@ -48,11 +48,7 @@ impl Interpreter {
         expr.accept(self)
     }
 
-    fn execute_block(
-        &self,
-        statements: &[Stmt],
-        environment: Environment,
-    ) -> Result<(), LoxError> {
+    fn execute_block(&self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
         let e = Rc::new(RefCell::new(environment));
         let previous = self.environment.replace(e);
 
