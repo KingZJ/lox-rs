@@ -31,6 +31,7 @@ fn main() {
     // stmt
     let base_name = "Stmt";
     let notation = vec![
+        format!("Block : Vec<{base_name}> statements"),
         format!("Expression : Expr expression"),
         format!("Print : Expr expression"),
         format!("Var : Token name, Option<Expr> initializer"),

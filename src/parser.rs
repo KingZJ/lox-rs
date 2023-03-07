@@ -73,12 +73,29 @@ impl Parser {
     }
 
     // statement      → exprStmt | printStmt ;
+    // statement      → exprStmt | printStmt | block ;
     fn statement(&mut self) -> Result<Stmt, LoxError> {
-        if self.is_match(&vec![TokenType::Print]) {
+        if self.is_match(&vec![TokenType::LeftBrace]) {
+            Ok(Stmt::Block(BlockStmt {
+                statements: self.block()?,
+            }))
+        } else if self.is_match(&vec![TokenType::Print]) {
             self.print_statement()
         } else {
             self.expression_statement()
         }
+    }
+
+    // block          → "{" declaration* "}" ;
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements: Vec<Stmt> = vec![];
+        while !self.is_expect(TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "expected `}`")?;
+
+        Ok(statements)
     }
 
     // printStmt      → "print" expression ";"

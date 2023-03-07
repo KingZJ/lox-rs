@@ -1,5 +1,8 @@
+// use std::rc::Rc;
+
+use crate::environment::Environment;
 use crate::error::LoxError;
-use crate::stmt::{ExpressionStmt, PrintStmt, StmtVisitor, VarStmt};
+use crate::stmt::*;
 use crate::token::Object;
 
 use super::Interpreter;
@@ -23,8 +26,20 @@ impl StmtVisitor<()> for Interpreter {
             Object::Nil
         };
         self.environment
+            .borrow()
             .borrow_mut()
             .define(stmt.name.lexeme.clone(), value);
+        Ok(())
+    }
+
+    fn visit_block_stmt(&self, stmt: &BlockStmt) -> Result<(), LoxError> {
+        // println!("{:?}", self.environment);
+        // Rc::clone(self.environment.as_ref())
+        let e = self.environment.borrow().clone();
+        self.execute_block(
+            &stmt.statements,
+            Environment::new_enclosing(e),
+        )?;
         Ok(())
     }
 }
