@@ -26,7 +26,9 @@ struct Lox {
 }
 impl Lox {
     fn new() -> Self {
-        Self { interpreter: Interpreter::new() }
+        Self {
+            interpreter: Interpreter::new(),
+        }
     }
     fn run_file(&self, path: &str) -> io::Result<()> {
         let mut f = File::open(path).expect("cannot open file");
@@ -88,4 +90,3 @@ impl Lox {
         Ok(())
     }
 }
-

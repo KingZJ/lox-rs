@@ -45,13 +45,19 @@ impl ExprVisitor<Object> for Interpreter {
         match expr.operator.tk_type {
             TokenType::Minus => match right {
                 Object::Number(num) => Ok(Object::Number(-num)),
-                _ => Err(LoxError::error(expr.operator.line, "invalid number".to_string())),
+                _ => Err(LoxError::error(
+                    expr.operator.line,
+                    "invalid number".to_string(),
+                )),
             },
             TokenType::Bang => match right {
                 Object::Nil | Object::False => Ok(Object::True),
                 _ => Ok(Object::False),
             },
-            _ => Err(LoxError::error(expr.operator.line, "invalid expression".to_string())),
+            _ => Err(LoxError::error(
+                expr.operator.line,
+                "invalid expression".to_string(),
+            )),
         }
     }
 
@@ -61,8 +67,10 @@ impl ExprVisitor<Object> for Interpreter {
 
     fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<Object, LoxError> {
         let value = self.evaluate(&expr.value)?;
-        self.environment.borrow_mut().assign(&expr.name, value.clone())?;
-        
+        self.environment
+            .borrow_mut()
+            .assign(&expr.name, value.clone())?;
+
         Ok(value)
     }
 }

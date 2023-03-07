@@ -151,7 +151,7 @@ impl Parser {
     //         } else {
     //             Err(LoxError::error(name.line, "parser error invalid assign".to_string()))
     //         }
-            
+
     //     } else {
     //         self.equality()
     //     }
@@ -164,10 +164,16 @@ impl Parser {
                 let name = e.name;
                 let value = self.assignment()?;
 
-                return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }));
+                return Ok(Expr::Assign(AssignExpr {
+                    name,
+                    value: Box::new(value),
+                }));
             }
 
-            return Err(LoxError::error(equals.line, "parser error invalid assign".to_string()));
+            return Err(LoxError::error(
+                equals.line,
+                "parser error invalid assign".to_string(),
+            ));
         }
 
         Ok(expr)

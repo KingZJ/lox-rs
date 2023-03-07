@@ -22,7 +22,9 @@ impl StmtVisitor<()> for Interpreter {
         } else {
             Object::Nil
         };
-        self.environment.borrow_mut().define(stmt.name.lexeme.clone(), value);
+        self.environment
+            .borrow_mut()
+            .define(stmt.name.lexeme.clone(), value);
         Ok(())
     }
 }

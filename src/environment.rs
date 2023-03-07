@@ -47,7 +47,7 @@ impl Environment {
 
 #[cfg(test)]
 mod test {
-    use crate::token::{Token, Object};
+    use crate::token::{Object, Token};
     use crate::token_type::TokenType;
 
     use super::Environment;
