@@ -23,7 +23,9 @@ pub enum TokenType {
     // !
     Bang,
     BangEqual,
+    // alias Assign
     Equal,
+    // alias Equals
     EqualEqual,
     Greater,
     GreaterEqual,

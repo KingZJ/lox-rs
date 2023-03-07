@@ -17,6 +17,7 @@ fn main() {
     let output_dir = args.get(1).unwrap();
     let base_name = "Expr";
     let notation = vec![
+        format!("Assign : Token name, Box<{base_name}> value"),
         format!("Binary : Box<{base_name}> left, Token operator, Box<{base_name}> right"),
         format!("Grouping : Box<{base_name}> expression"),
         "Literal : Object value".to_owned(),

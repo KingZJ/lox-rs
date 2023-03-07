@@ -60,6 +60,10 @@ impl Token {
             line,
         }
     }
+
+    pub fn as_string(&self) -> String {
+        self.lexeme.clone()
+    }
 }
 
 impl Clone for Token {

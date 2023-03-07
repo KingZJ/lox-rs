@@ -1,5 +1,5 @@
-use crate::expr::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr, VariableExpr};
-use crate::stmt::{ExpressionStmt, PrintStmt, Stmt, VarStmt};
+use crate::expr::*;
+use crate::stmt::*;
 use crate::token::Object;
 use crate::token_type::TokenType;
 use crate::{error::LoxError, token::Token};
@@ -77,7 +77,7 @@ impl Parser {
         if self.is_match(&vec![TokenType::Print]) {
             self.print_statement()
         } else {
-            self.expr_statement()
+            self.expression_statement()
         }
     }
 
@@ -89,7 +89,7 @@ impl Parser {
     }
 
     // exprStmt       → expression ";"
-    fn expr_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "expect `;` after expression")?;
         Ok(Stmt::Expression(ExpressionStmt { expression }))
@@ -135,9 +135,42 @@ impl Parser {
         self.current += 1;
     }
 
-    // expression     → equality ;
+    // expression     → assignment ;
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.equality()
+        self.assignment()
+    }
+
+    // assignment     → IDENTIFIER "=" assignment | equality ;
+    // a + b = c;
+    // fn assignment(&mut self) -> Result<Expr, LoxError> {
+    //     if self.is_match(&vec![TokenType::Identifier]) {
+    //         let name = self.previous().unwrap();
+    //         if self.is_match(&vec![TokenType::Equal]) {
+    //             let value = self.assignment()?;
+    //             Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }))
+    //         } else {
+    //             Err(LoxError::error(name.line, "parser error invalid assign".to_string()))
+    //         }
+            
+    //     } else {
+    //         self.equality()
+    //     }
+    // }
+    fn assignment(&mut self) -> Result<Expr, LoxError> {
+        let expr = self.equality()?;
+        if self.is_match(&vec![TokenType::Equal]) {
+            let equals = self.previous().unwrap();
+            if let Expr::Variable(e) = expr {
+                let name = e.name;
+                let value = self.assignment()?;
+
+                return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }));
+            }
+
+            return Err(LoxError::error(equals.line, "parser error invalid assign".to_string()));
+        }
+
+        Ok(expr)
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;

@@ -1,5 +1,5 @@
 use crate::error::LoxError;
-use crate::expr::{BinaryExpr, ExprVisitor, GroupingExpr, LiteralExpr, UnaryExpr};
+use crate::expr::*;
 use crate::token::Object;
 use crate::token_type::TokenType;
 
@@ -45,18 +45,25 @@ impl ExprVisitor<Object> for Interpreter {
         match expr.operator.tk_type {
             TokenType::Minus => match right {
                 Object::Number(num) => Ok(Object::Number(-num)),
-                _ => Err(LoxError::error(0, "invalid number".to_string())),
+                _ => Err(LoxError::error(expr.operator.line, "invalid number".to_string())),
             },
             TokenType::Bang => match right {
                 Object::Nil | Object::False => Ok(Object::True),
                 _ => Ok(Object::False),
             },
-            _ => Ok(Object::Nil),
+            _ => Err(LoxError::error(expr.operator.line, "invalid expression".to_string())),
         }
     }
 
-    fn visit_variable_expr(&self, expr: &crate::expr::VariableExpr) -> Result<Object, LoxError> {
-        Ok(Object::Nil)
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<Object, LoxError> {
+        self.environment.borrow().get(&expr.name)
+    }
+
+    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<Object, LoxError> {
+        let value = self.evaluate(&expr.value)?;
+        self.environment.borrow_mut().assign(&expr.name, value.clone())?;
+        
+        Ok(value)
     }
 }
 
@@ -149,7 +156,7 @@ mod test {
             right,
         });
 
-        let interpreter = Interpreter {};
+        let interpreter = Interpreter::new();
         let res = interpreter.evaluate(&expr);
         assert!(res.is_ok());
         assert_eq!(res.ok(), Some(Object::Number(30.0)));
@@ -175,7 +182,7 @@ mod test {
                 right,
             });
 
-            let interpreter = Interpreter {};
+            let interpreter = Interpreter::new();
             let res = interpreter.evaluate(&expr);
             assert!(res.is_ok());
             assert_eq!(res.ok(), Some(b.clone()));

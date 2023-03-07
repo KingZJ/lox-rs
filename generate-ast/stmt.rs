@@ -2,6 +2,7 @@ use crate::expr::*;
 use crate::token::*;
 use crate::error::*;
 
+#[derive(Debug)]
 pub enum Stmt {
 	Expression(ExpressionStmt),
 	Print(PrintStmt),
@@ -31,7 +32,7 @@ pub struct PrintStmt {
 #[derive(Debug)]
 pub struct VarStmt {
 	pub name: Token,
-	pub initializer: Expr,
+	pub initializer: Option<Expr>,
 }
 
 impl ExpressionStmt {

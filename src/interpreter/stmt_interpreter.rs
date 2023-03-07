@@ -1,5 +1,6 @@
 use crate::error::LoxError;
-use crate::stmt::{ExpressionStmt, PrintStmt, StmtVisitor};
+use crate::stmt::{ExpressionStmt, PrintStmt, StmtVisitor, VarStmt};
+use crate::token::Object;
 
 use super::Interpreter;
 
@@ -15,7 +16,13 @@ impl StmtVisitor<()> for Interpreter {
         Ok(())
     }
 
-    fn visit_var_stmt(&self, stmt: &crate::stmt::VarStmt) -> Result<(), LoxError> {
+    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<(), LoxError> {
+        let value = if let Some(ref initializer) = stmt.initializer {
+            self.evaluate(initializer)?
+        } else {
+            Object::Nil
+        };
+        self.environment.borrow_mut().define(stmt.name.lexeme.clone(), value);
         Ok(())
     }
 }

@@ -7,4 +7,5 @@ pub mod token_type;
 
 pub mod interpreter;
 
+pub mod environment;
 pub mod stmt;
