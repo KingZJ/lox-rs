@@ -36,10 +36,7 @@ impl StmtVisitor<()> for Interpreter {
         // println!("{:?}", self.environment);
         // Rc::clone(self.environment.as_ref())
         let e = self.environment.borrow().clone();
-        self.execute_block(
-            &stmt.statements,
-            Environment::new_enclosing(e),
-        )?;
+        self.execute_block(&stmt.statements, Environment::new_enclosing(e))?;
         Ok(())
     }
 }

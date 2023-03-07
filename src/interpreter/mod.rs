@@ -44,7 +44,7 @@ impl Interpreter {
         statements: &Vec<Stmt>,
         environment: Environment,
     ) -> Result<(), LoxError> {
-        let e =  Rc::new(RefCell::new(environment));
+        let e = Rc::new(RefCell::new(environment));
         let previous = self.environment.replace(e);
 
         // try catch
