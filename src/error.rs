@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct LoxError {
     line: usize,
     message: String,

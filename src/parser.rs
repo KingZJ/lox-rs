@@ -74,8 +74,11 @@ impl Parser {
 
     // statement      → exprStmt | printStmt ;
     // statement      → exprStmt | printStmt | block ;
+    // statement      → exprStmt | ifStmt | printStmt | block ;
     fn statement(&mut self) -> Result<Stmt, LoxError> {
-        if self.is_match(&vec![TokenType::LeftBrace]) {
+        if self.is_match(&vec![TokenType::If]) {
+            self.if_statement()
+        } else if self.is_match(&vec![TokenType::LeftBrace]) {
             Ok(Stmt::Block(BlockStmt {
                 statements: self.block()?,
             }))
@@ -84,6 +87,26 @@ impl Parser {
         } else {
             self.expression_statement()
         }
+    }
+
+    // ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "parser error expect `(` after if")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "parser error expect `)`")?;
+        let then_branch = Box::new(self.statement()?);
+
+        let else_branch = if self.is_match(&vec![TokenType::Else]) {
+            Some(Box::new(self.statement()?))
+        } else {
+            None
+        };
+
+        Ok(Stmt::If(IfStmt {
+            condition,
+            then_branch,
+            else_branch,
+        }))
     }
 
     // block          → "{" declaration* "}" ;

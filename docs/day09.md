@@ -15,3 +15,9 @@ declaration    → varDecl | statement ;
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+
+
+### if statement
+statement      → exprStmt | ifStmt | printStmt | block ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;

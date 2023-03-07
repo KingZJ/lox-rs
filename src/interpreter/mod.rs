@@ -29,6 +29,15 @@ impl Interpreter {
         println!("{:?}", self.environment);
     }
 
+    fn is_truthy(&self, obj: Object) -> bool {
+        // match obj {
+        //     Object::False | Object::Nil => false,
+        //     _ => true,
+        // }
+
+        !matches!(obj, Object::False | Object::Nil)
+    }
+
     // 语句执行器
     fn execute(&self, stmt: &Stmt) -> Result<(), LoxError> {
         stmt.accept(self)
@@ -41,7 +50,7 @@ impl Interpreter {
 
     fn execute_block(
         &self,
-        statements: &Vec<Stmt>,
+        statements: &[Stmt],
         environment: Environment,
     ) -> Result<(), LoxError> {
         let e = Rc::new(RefCell::new(environment));

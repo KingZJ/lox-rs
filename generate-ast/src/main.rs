@@ -33,6 +33,7 @@ fn main() {
     let notation = vec![
         format!("Block : Vec<{base_name}> statements"),
         format!("Expression : Expr expression"),
+        format!("If : Expr condition, Box<{base_name}> then_branch, Option<Box<{base_name}>> else_branch"),
         format!("Print : Expr expression"),
         format!("Var : Token name, Option<Expr> initializer"),
     ];
