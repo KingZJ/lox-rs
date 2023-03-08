@@ -104,6 +104,7 @@ impl ExprVisitor<Object> for Interpreter {
                     format!("expect {} arguments but got {}", f.arity(), arguments.len()),
                 ));
             }
+
             f.call(self, arguments)
         } else {
             Err(LoxResult::runtime_error(

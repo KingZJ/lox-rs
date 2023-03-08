@@ -6,6 +6,7 @@ pub enum LoxResult {
     ParseError { token: Token, message: String },
     RuntimeError { token: Token, message: String },
     LoxError { line: usize, message: String },
+    SystemError { message: String },
     Break,
 }
 
@@ -37,14 +38,21 @@ impl LoxResult {
         err
     }
 
+    pub fn system_error(message: String) -> LoxResult {
+        let err = Self::SystemError { message };
+        err.report("System Error");
+
+        err
+    }
+
     pub fn report(&self, loc: &str) {
         match self {
             Self::LoxError { line, message } => {
-                eprintln!("[line: {}], {}: {}", line, loc, message);
+                eprintln!("[line: {line}], {loc}: {message}");
             }
             Self::ParseError { token, message } | Self::RuntimeError { token, message } => {
                 if token.is(crate::token_type::TokenType::Eof) {
-                    eprintln!("[line: {} at end], {}: {}", token.line, loc, message);
+                    eprintln!("[line: {} at end], {loc}: {message}", token.line);
                 } else {
                     eprintln!(
                         "[line: {} at `{}`], {}: {}",
@@ -55,6 +63,7 @@ impl LoxResult {
                     );
                 }
             }
+            Self::SystemError { message } => eprintln!("{loc}: {message}"),
             _ => (),
         }
     }

@@ -3,17 +3,13 @@ use std::{
     rc::Rc,
 };
 
-use crate::{
-    error::LoxResult,
-    interpreter::{self, Interpreter},
-};
+use crate::{error::LoxResult, interpreter::Interpreter};
 
 use super::Object;
 
 #[derive(Clone)]
 pub struct LoxCallable {
     pub func: Rc<dyn Callable>,
-    pub arity: usize,
 }
 
 impl Display for LoxCallable {
@@ -40,12 +36,13 @@ impl Callable for LoxCallable {
     }
 
     fn arity(&self) -> usize {
-        self.arity
+        self.func.arity()
     }
 }
 
 pub trait Callable {
     fn call(&self, interpreter: &Interpreter, arguments: Vec<Object>) -> Result<Object, LoxResult>;
 
+    // 函数中的参数个数
     fn arity(&self) -> usize;
 }

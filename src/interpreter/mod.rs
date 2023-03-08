@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::core::*;
+use crate::native::NativeClock;
 use crate::{environment::Environment, error::LoxResult, expr::Expr, stmt::Stmt};
 
 mod expr_interpreter;
@@ -8,13 +9,23 @@ mod stmt_interpreter;
 
 #[derive(Default)]
 pub struct Interpreter {
+    pub globals: Rc<RefCell<Environment>>,
     pub environment: RefCell<Rc<RefCell<Environment>>>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
+        let globals = Rc::new(RefCell::new(Environment::new()));
+        globals.borrow_mut().define(
+            "clock".to_owned(),
+            Object::Func(LoxCallable {
+                func: Rc::new(NativeClock::new()),
+            }),
+        );
+
         Self {
-            environment: RefCell::new(Rc::new(RefCell::new(Environment::new()))),
+            environment: RefCell::new(Rc::clone(&globals)),
+            globals,
         }
     }
     pub fn interpreter(&self, statements: &Vec<Stmt>) {

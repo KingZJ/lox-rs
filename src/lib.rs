@@ -10,3 +10,5 @@ pub mod interpreter;
 pub mod core;
 pub mod environment;
 pub mod stmt;
+
+pub mod native;
