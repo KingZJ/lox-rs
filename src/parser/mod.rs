@@ -1,6 +1,6 @@
 use crate::stmt::*;
 use crate::token_type::TokenType;
-use crate::{error::LoxError, token::Token};
+use crate::{error::LoxResult, token::Token};
 
 mod parser_expr;
 mod parser_stmt;
@@ -22,7 +22,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxResult> {
         self.program()
     }
 
@@ -66,13 +66,12 @@ impl Parser {
         self.current += 1;
     }
 
-    fn consume(&mut self, tk_type: TokenType, message: &str) -> Result<Token, LoxError> {
+    fn consume(&mut self, tk_type: TokenType, message: &str) -> Result<Token, LoxResult> {
         if self.is_expect(tk_type) {
             self.advance();
             return Ok(self.previous().unwrap());
         }
         let token = self.peek().unwrap();
-        let line = token.line;
         let mut message = message.to_string();
         if token.tk_type == TokenType::Eof {
             message = format!("parser error at end {}", message);
@@ -80,7 +79,7 @@ impl Parser {
             message = format!("parser error at `{}` {}", token.lexeme, message);
         }
 
-        Err(LoxError::error(line, message))
+        Err(LoxResult::parse_error(token, message))
     }
 
     pub fn synchronize(&mut self) {

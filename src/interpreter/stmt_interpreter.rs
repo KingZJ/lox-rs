@@ -1,25 +1,25 @@
 // use std::rc::Rc;
 
 use crate::environment::Environment;
-use crate::error::LoxError;
+use crate::error::LoxResult;
 use crate::stmt::*;
 use crate::token::Object;
 
 use super::Interpreter;
 
 impl StmtVisitor<()> for Interpreter {
-    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxError> {
+    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<(), LoxResult> {
         self.evaluate(&stmt.expression)?;
         Ok(())
     }
 
-    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<(), LoxError> {
+    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<(), LoxResult> {
         let value = self.evaluate(&stmt.expression)?;
         println!("{}", value);
         Ok(())
     }
 
-    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<(), LoxError> {
+    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<(), LoxResult> {
         let value = if let Some(ref initializer) = stmt.initializer {
             self.evaluate(initializer)?
         } else {
@@ -32,7 +32,7 @@ impl StmtVisitor<()> for Interpreter {
         Ok(())
     }
 
-    fn visit_block_stmt(&self, stmt: &BlockStmt) -> Result<(), LoxError> {
+    fn visit_block_stmt(&self, stmt: &BlockStmt) -> Result<(), LoxResult> {
         // println!("{:?}", self.environment);
         // Rc::clone(self.environment.as_ref())
         let e = self.environment.borrow().clone();
@@ -40,7 +40,7 @@ impl StmtVisitor<()> for Interpreter {
         Ok(())
     }
 
-    fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<(), LoxError> {
+    fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<(), LoxResult> {
         if self.is_truthy(&self.evaluate(&stmt.condition)?) {
             self.execute(&stmt.then_branch)
         } else if let Some(ref else_branch) = stmt.else_branch {
@@ -50,7 +50,7 @@ impl StmtVisitor<()> for Interpreter {
         }
     }
 
-    fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<(), LoxError> {
+    fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<(), LoxResult> {
         while self.is_truthy(&self.evaluate(&stmt.condition)?) {
             self.execute(&stmt.body)?;
         }

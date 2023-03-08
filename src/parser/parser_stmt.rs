@@ -1,6 +1,6 @@
 use super::Parser;
 
-use crate::error::LoxError;
+use crate::error::LoxResult;
 use crate::expr::*;
 use crate::stmt::*;
 use crate::token::Object;
@@ -8,7 +8,7 @@ use crate::token_type::TokenType;
 
 impl Parser {
     //  program        → declaration* EOF ;
-    pub fn program(&mut self) -> Result<Vec<Stmt>, LoxError> {
+    pub fn program(&mut self) -> Result<Vec<Stmt>, LoxResult> {
         let mut statements: Vec<Stmt> = vec![];
         while !self.is_at_end() {
             statements.push(self.declaration()?);
@@ -18,7 +18,7 @@ impl Parser {
     }
 
     //  declaration    → varDecl | statement ;
-    fn declaration(&mut self) -> Result<Stmt, LoxError> {
+    fn declaration(&mut self) -> Result<Stmt, LoxResult> {
         let result = if self.is_match(&vec![TokenType::Var]) {
             self.var_declaration()
         } else {
@@ -33,7 +33,7 @@ impl Parser {
     }
 
     //  varDecl        → "var" IDENTIFIER ( "=" expression )? ";"
-    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+    fn var_declaration(&mut self) -> Result<Stmt, LoxResult> {
         let name = self.consume(TokenType::Identifier, "expect variable name")?;
         let initializer = if self.is_match(&vec![TokenType::Equal]) {
             Some(self.expression()?)
@@ -53,7 +53,7 @@ impl Parser {
     // statement      → exprStmt | ifStmt | printStmt | block ;
     // statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
     // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
-    fn statement(&mut self) -> Result<Stmt, LoxError> {
+    fn statement(&mut self) -> Result<Stmt, LoxResult> {
         if self.is_match(&vec![TokenType::For]) {
             self.for_statement()
         } else if self.is_match(&vec![TokenType::While]) {
@@ -72,7 +72,7 @@ impl Parser {
     }
 
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement
-    fn for_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn for_statement(&mut self) -> Result<Stmt, LoxResult> {
         self.consume(TokenType::LeftParen, "expect `(` after `for`")?;
 
         let initializer = if self.is_match(&vec![TokenType::SemiColon]) {
@@ -119,7 +119,7 @@ impl Parser {
     }
 
     // whileStmt      → "while" "(" expression ")" statement ;
-    fn while_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn while_statement(&mut self) -> Result<Stmt, LoxResult> {
         self.consume(TokenType::LeftParen, "expect `(` after while")?;
         let condition = self.expression()?;
         self.consume(TokenType::RightParen, "expect `)` after condition")?;
@@ -133,7 +133,7 @@ impl Parser {
     }
 
     // ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
-    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn if_statement(&mut self) -> Result<Stmt, LoxResult> {
         self.consume(TokenType::LeftParen, "parser error expect `(` after if")?;
         let condition = self.expression()?;
         self.consume(TokenType::RightParen, "parser error expect `)`")?;
@@ -153,7 +153,7 @@ impl Parser {
     }
 
     // block          → "{" declaration* "}" ;
-    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxResult> {
         let mut statements: Vec<Stmt> = vec![];
         while !self.is_expect(TokenType::RightBrace) && !self.is_at_end() {
             statements.push(self.declaration()?);
@@ -165,14 +165,14 @@ impl Parser {
     }
 
     // printStmt      → "print" expression ";"
-    fn print_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn print_statement(&mut self) -> Result<Stmt, LoxResult> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "expect `;` after expression")?;
         Ok(Stmt::Print(PrintStmt { expression }))
     }
 
     // exprStmt       → expression ";"
-    fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
+    fn expression_statement(&mut self) -> Result<Stmt, LoxResult> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "expect `;` after expression")?;
         Ok(Stmt::Expression(ExpressionStmt { expression }))

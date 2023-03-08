@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::{
-    error::LoxError,
+    error::LoxResult,
     token::{Object, Token},
 };
 
@@ -32,27 +32,27 @@ impl Environment {
         self.values.insert(name, value);
     }
 
-    pub fn get(&self, name: &Token) -> Result<Object, LoxError> {
+    pub fn get(&self, name: &Token) -> Result<Object, LoxResult> {
         if let Some(obj) = self.values.get(&name.lexeme) {
             Ok(obj.clone())
         } else if let Some(ref enclosing) = self.enclosing {
             enclosing.borrow().get(name)
         } else {
-            Err(LoxError::error(
+            Err(LoxResult::error(
                 name.line,
                 format!("undefined variable `{}`", name.lexeme),
             ))
         }
     }
 
-    pub fn assign(&mut self, name: &Token, value: Object) -> Result<(), LoxError> {
+    pub fn assign(&mut self, name: &Token, value: Object) -> Result<(), LoxResult> {
         if self.values.contains_key(&name.lexeme) {
             self.values.insert(name.as_string(), value);
             Ok(())
         } else if let Some(ref enclosing) = self.enclosing {
             enclosing.borrow_mut().assign(name, value)
         } else {
-            Err(LoxError::error(
+            Err(LoxResult::error(
                 name.line,
                 format!("undefined variable `{}`", name.lexeme),
             ))

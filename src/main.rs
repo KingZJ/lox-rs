@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{self, BufRead, Read, Write};
 use std::str;
 
-use lox_ast::error::LoxError;
+use lox_ast::error::LoxResult;
 use lox_ast::interpreter::Interpreter;
 use lox_ast::parser::Parser;
 use lox_ast::scanner::Scanner;
@@ -71,7 +71,7 @@ impl Lox {
         }
     }
 
-    fn run(&self, source: String) -> Result<(), LoxError> {
+    fn run(&self, source: String) -> Result<(), LoxResult> {
         if source == "@" {
             self.interpreter.print_environment();
             return Ok(());

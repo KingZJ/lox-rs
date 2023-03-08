@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{environment::Environment, error::LoxError, expr::Expr, stmt::Stmt, token::Object};
+use crate::{environment::Environment, error::LoxResult, expr::Expr, stmt::Stmt, token::Object};
 
 mod expr_interpreter;
 mod stmt_interpreter;
@@ -39,16 +39,20 @@ impl Interpreter {
     }
 
     // 语句执行器
-    fn execute(&self, stmt: &Stmt) -> Result<(), LoxError> {
+    fn execute(&self, stmt: &Stmt) -> Result<(), LoxResult> {
         stmt.accept(self)
     }
 
     // 表达式解释器
-    fn evaluate(&self, expr: &Expr) -> Result<Object, LoxError> {
+    fn evaluate(&self, expr: &Expr) -> Result<Object, LoxResult> {
         expr.accept(self)
     }
 
-    fn execute_block(&self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
+    fn execute_block(
+        &self,
+        statements: &[Stmt],
+        environment: Environment,
+    ) -> Result<(), LoxResult> {
         let e = Rc::new(RefCell::new(environment));
         let previous = self.environment.replace(e);
 

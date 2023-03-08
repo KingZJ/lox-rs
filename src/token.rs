@@ -1,25 +1,13 @@
 use super::token_type::TokenType;
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Number(f64),
     Str(String),
     Nil,
     True,
     False,
-}
-
-impl Clone for Object {
-    fn clone(&self) -> Self {
-        match self {
-            Object::Number(value) => Object::Number(*value),
-            Object::Str(value) => Object::Str(String::from(value)),
-            Object::False => Object::False,
-            Object::Nil => Object::Nil,
-            Object::True => Object::True,
-        }
-    }
 }
 
 impl fmt::Display for Object {

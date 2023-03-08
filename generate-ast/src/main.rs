@@ -123,7 +123,7 @@ fn define_impl_enum(
     writeln!(buffer, "\nimpl {} {{", base_name)?;
     writeln!(
         buffer,
-        "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{",
+        "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxResult> {{",
         base_name
     )?;
     writeln!(buffer, "\t\tmatch self {{")?;
@@ -167,7 +167,7 @@ fn define_impl_struct(
         writeln!(buffer, "\nimpl {}{} {{", item.derive_name, item.base_name)?;
         writeln!(
             buffer,
-            "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{",
+            "\tpub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxResult> {{",
             base_name
         )?;
         writeln!(
@@ -193,7 +193,7 @@ fn define_visitor(
     for item in notation {
         writeln!(
             buffer,
-            "\tfn visit_{}_{}(&self, {1}: &{}{}) -> Result<T, LoxError>;",
+            "\tfn visit_{}_{}(&self, {1}: &{}{}) -> Result<T, LoxResult>;",
             item.derive_name.to_lowercase(),
             item.base_name.to_lowercase(),
             item.derive_name,

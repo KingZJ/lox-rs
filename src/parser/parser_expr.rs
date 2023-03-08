@@ -1,4 +1,4 @@
-use crate::error::LoxError;
+use crate::error::LoxResult;
 use crate::expr::*;
 use crate::token::Object;
 use crate::token_type::TokenType;
@@ -7,7 +7,7 @@ use super::Parser;
 
 impl Parser {
     // expression     → assignment ;
-    pub fn expression(&mut self) -> Result<Expr, LoxError> {
+    pub fn expression(&mut self) -> Result<Expr, LoxResult> {
         self.assignment()
     }
 
@@ -28,7 +28,7 @@ impl Parser {
     //     }
     // }
     // assignment     → IDENTIFIER "=" assignment | logic_or ;
-    fn assignment(&mut self) -> Result<Expr, LoxError> {
+    fn assignment(&mut self) -> Result<Expr, LoxResult> {
         let expr = self.logic_or()?;
         if self.is_match(&vec![TokenType::Equal]) {
             let equals = self.previous().unwrap();
@@ -42,17 +42,14 @@ impl Parser {
                 }));
             }
 
-            return Err(LoxError::error(
-                equals.line,
-                "parser error invalid assign".to_string(),
-            ));
+            return Err(LoxResult::parse_error(equals, "invalid assign".to_string()));
         }
 
         Ok(expr)
     }
 
     // logic_or       → logic_and ( "or" logic_and )*
-    fn logic_or(&mut self) -> Result<Expr, LoxError> {
+    fn logic_or(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.logic_and()?;
 
         while self.is_match(&vec![TokenType::Or]) {
@@ -69,7 +66,7 @@ impl Parser {
     }
 
     // logic_and      → equality ( "and" equality )* ;
-    fn logic_and(&mut self) -> Result<Expr, LoxError> {
+    fn logic_and(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.equality()?;
 
         while self.is_match(&vec![TokenType::And]) {
@@ -86,7 +83,7 @@ impl Parser {
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    fn equality(&mut self) -> Result<Expr, LoxError> {
+    fn equality(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.comparison()?;
         let equality_operators = vec![TokenType::BangEqual, TokenType::EqualEqual];
         while self.is_match(&equality_operators) {
@@ -103,7 +100,7 @@ impl Parser {
     }
 
     // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    fn comparison(&mut self) -> Result<Expr, LoxError> {
+    fn comparison(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.term()?;
         let comparison_operators = vec![
             TokenType::Greater,
@@ -125,7 +122,7 @@ impl Parser {
     }
 
     // term           → factor ( ( "-" | "+" ) factor )* ;
-    fn term(&mut self) -> Result<Expr, LoxError> {
+    fn term(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.factor()?;
         let term_operators = vec![TokenType::Plus, TokenType::Minus];
         while self.is_match(&term_operators) {
@@ -142,7 +139,7 @@ impl Parser {
     }
 
     // factor         → unary ( ( "/" | "*" ) unary )* ;
-    fn factor(&mut self) -> Result<Expr, LoxError> {
+    fn factor(&mut self) -> Result<Expr, LoxResult> {
         let mut left = self.unary()?;
         let factor_operators = vec![TokenType::Star, TokenType::Slash];
         while self.is_match(&factor_operators) {
@@ -159,7 +156,7 @@ impl Parser {
     }
 
     // unary          → ( "!" | "-" ) unary | primary ;
-    fn unary(&mut self) -> Result<Expr, LoxError> {
+    fn unary(&mut self) -> Result<Expr, LoxResult> {
         let unary_operators = vec![TokenType::Bang, TokenType::Minus];
         if self.is_match(&unary_operators) {
             let operator = self.previous().unwrap();
@@ -174,7 +171,7 @@ impl Parser {
     }
 
     // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-    fn primary(&mut self) -> Result<Expr, LoxError> {
+    fn primary(&mut self) -> Result<Expr, LoxResult> {
         if self.is_match(&vec![TokenType::Number, TokenType::String]) {
             let value = self.previous().unwrap().literal.unwrap();
             Ok(Expr::Literal(LiteralExpr { value }))
@@ -199,9 +196,9 @@ impl Parser {
                 expression: Box::new(expr),
             }))
         } else {
-            let line = self.peek().unwrap().line;
+            let token = self.peek().unwrap();
             let message = "failed primary parse".to_string();
-            Err(LoxError::error(line, message))
+            Err(LoxResult::parse_error(token, message))
         }
     }
 }

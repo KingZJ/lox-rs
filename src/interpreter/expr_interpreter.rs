@@ -1,12 +1,12 @@
-use crate::error::LoxError;
+use crate::error::LoxResult;
 use crate::expr::*;
-use crate::token::Object;
+use crate::token::{Object, Token};
 use crate::token_type::TokenType;
 
 use super::Interpreter;
 
 impl ExprVisitor<Object> for Interpreter {
-    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<Object, LoxError> {
+    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<Object, LoxResult> {
         let left = self.evaluate(expr.left.as_ref())?;
         let right = self.evaluate(expr.right.as_ref())?;
 
@@ -20,33 +20,33 @@ impl ExprVisitor<Object> for Interpreter {
 
         match (left, right) {
             (Object::Number(left_num), Object::Number(right_num)) => {
-                self.number_binary_evaluate(left_num, right_num, expr.operator.tk_type)
+                self.number_binary_evaluate(left_num, right_num, &expr.operator)
             }
             // (Object::Str(left), Object::Str(right)) => {},
             (Object::Nil, Object::Nil) => Ok(Object::True),
 
-            _ => Err(LoxError::error(
-                expr.operator.line,
+            _ => Err(LoxResult::runtime_error(
+                &expr.operator,
                 "interpreter error invalid number".to_string(),
             )),
         }
     }
 
-    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<Object, LoxError> {
+    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<Object, LoxResult> {
         self.evaluate(expr.expression.as_ref())
     }
 
-    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<Object, LoxError> {
+    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<Object, LoxResult> {
         Ok(expr.value.clone())
     }
 
-    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<Object, LoxError> {
+    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<Object, LoxResult> {
         let right = self.evaluate(expr.right.as_ref())?;
         match expr.operator.tk_type {
             TokenType::Minus => match right {
                 Object::Number(num) => Ok(Object::Number(-num)),
-                _ => Err(LoxError::error(
-                    expr.operator.line,
+                _ => Err(LoxResult::runtime_error(
+                    &expr.operator,
                     "invalid number".to_string(),
                 )),
             },
@@ -54,19 +54,19 @@ impl ExprVisitor<Object> for Interpreter {
                 Object::Nil | Object::False => Ok(Object::True),
                 _ => Ok(Object::False),
             },
-            _ => Err(LoxError::error(
-                expr.operator.line,
+            _ => Err(LoxResult::runtime_error(
+                &expr.operator,
                 "invalid expression".to_string(),
             )),
         }
     }
 
-    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<Object, LoxError> {
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<Object, LoxResult> {
         self.environment.borrow().borrow().get(&expr.name)
         // self.environment.borrow().get(&expr.name)
     }
 
-    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<Object, LoxError> {
+    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<Object, LoxResult> {
         let value = self.evaluate(&expr.value)?;
         self.environment
             .borrow()
@@ -76,7 +76,7 @@ impl ExprVisitor<Object> for Interpreter {
         Ok(value)
     }
 
-    fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<Object, LoxError> {
+    fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<Object, LoxResult> {
         let left = self.evaluate(&expr.left)?;
 
         if (expr.operator.is(TokenType::Or) && self.is_truthy(&left))
@@ -94,10 +94,10 @@ impl Interpreter {
         &self,
         left_num: f64,
         right_num: f64,
-        tk_type: TokenType,
-    ) -> Result<Object, LoxError> {
+        token: &Token,
+    ) -> Result<Object, LoxResult> {
         // good idea rewrite std::ops::{ADD, SUB}  std::cmp::PartialOrd for Object
-        match tk_type {
+        match token.tk_type {
             TokenType::Minus => Ok(Object::Number(left_num - right_num)),
             TokenType::Plus => Ok(Object::Number(left_num + right_num)),
             TokenType::Star => Ok(Object::Number(left_num * right_num)),
@@ -145,9 +145,9 @@ impl Interpreter {
                 }
             }
 
-            _ => Err(LoxError::error(
-                0,
-                "interpreter error invalid operator".to_string(),
+            _ => Err(LoxResult::runtime_error(
+                token,
+                "invalid operator".to_string(),
             )),
         }
     }

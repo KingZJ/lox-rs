@@ -1,4 +1,4 @@
-use crate::error::LoxError;
+use crate::error::LoxResult;
 use crate::token::{Object, Token};
 use crate::token_type::TokenType;
 
@@ -21,7 +21,7 @@ impl Scanner {
             line: 1,
         }
     }
-    pub fn scan_tokens(&mut self) -> Result<&Vec<Token>, LoxError> {
+    pub fn scan_tokens(&mut self) -> Result<&Vec<Token>, LoxResult> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
@@ -35,10 +35,10 @@ impl Scanner {
         self.current >= self.source.len()
     }
 
-    fn scan_token(&mut self) -> Result<(), LoxError> {
+    fn scan_token(&mut self) -> Result<(), LoxResult> {
         let c = self.advance();
-        match c {
-            Some(item) => match item {
+        if let Some(item) = c {
+            match item {
                 ' ' | '\r' | '\t' => (),
                 '\n' => self.line += 1,
                 '"' => self.string()?,
@@ -107,14 +107,13 @@ impl Scanner {
                         self.identifier();
                     } else {
                         // unreachable!("unmatched token type");
-                        return Err(LoxError::error(
+                        return Err(LoxResult::error(
                             self.line,
                             format!("scanner error unmatched token type `{c}`"),
                         ));
                     }
                 }
-            },
-            None => (),
+            }
         }
 
         Ok(())
@@ -129,7 +128,7 @@ impl Scanner {
         self.source.get(self.current + 1).copied()
     }
 
-    fn string(&mut self) -> Result<(), LoxError> {
+    fn string(&mut self) -> Result<(), LoxResult> {
         while let Some(c) = self.peek() {
             if c == '"' {
                 break;
@@ -139,7 +138,7 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            return Err(LoxError::error(
+            return Err(LoxResult::error(
                 self.line,
                 "scanner error Unterminated string".to_owned(),
             ));
