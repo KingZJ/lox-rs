@@ -98,6 +98,12 @@ impl ExprVisitor<Object> for Interpreter {
         }
 
         if let Object::Func(f) = callee {
+            if arguments.len() != f.func.arity() {
+                return Err(LoxResult::runtime_error(
+                    &expr.paren,
+                    format!("expect {} arguments but got {}", f.arity(), arguments.len()),
+                ));
+            }
             f.call(self, arguments)
         } else {
             Err(LoxResult::runtime_error(

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::Callable;
+use super::LoxCallable;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
@@ -9,7 +9,7 @@ pub enum Object {
     Nil,
     True,
     False,
-    Func(Callable),
+    Func(LoxCallable),
 }
 
 impl fmt::Display for Object {
