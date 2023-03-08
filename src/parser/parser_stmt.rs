@@ -1,7 +1,9 @@
 use super::Parser;
 
 use crate::error::LoxError;
+use crate::expr::*;
 use crate::stmt::*;
+use crate::token::Object;
 use crate::token_type::TokenType;
 
 impl Parser {
@@ -50,8 +52,11 @@ impl Parser {
     // statement      → exprStmt | printStmt | block ;
     // statement      → exprStmt | ifStmt | printStmt | block ;
     // statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
+    // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
     fn statement(&mut self) -> Result<Stmt, LoxError> {
-        if self.is_match(&vec![TokenType::While]) {
+        if self.is_match(&vec![TokenType::For]) {
+            self.for_statement()
+        } else if self.is_match(&vec![TokenType::While]) {
             self.while_statement()
         } else if self.is_match(&vec![TokenType::If]) {
             self.if_statement()
@@ -64,6 +69,53 @@ impl Parser {
         } else {
             self.expression_statement()
         }
+    }
+
+    // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement
+    fn for_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "expect `(` after `for`")?;
+
+        let initializer = if self.is_match(&vec![TokenType::SemiColon]) {
+            None
+        } else if self.is_match(&vec![TokenType::Var]) {
+            Some(self.var_declaration()?)
+        } else {
+            Some(self.expression_statement()?)
+        };
+
+        let condition = if self.is_expect(TokenType::SemiColon) {
+            Some(Expr::Literal(LiteralExpr {
+                value: Object::True,
+            }))
+        } else {
+            Some(self.expression()?)
+        };
+        self.consume(TokenType::SemiColon, "expect `;` in `for` middle")?;
+
+        let increment = if self.is_expect(TokenType::SemiColon) {
+            None
+        } else {
+            Some(self.expression()?)
+        };
+        self.consume(TokenType::RightParen, "expect `)` after `for` end")?;
+
+        let mut body = self.statement()?;
+        if let Some(expression) = increment {
+            body = Stmt::Block(BlockStmt {
+                statements: vec![body, Stmt::Expression(ExpressionStmt { expression })],
+            })
+        }
+        body = Stmt::While(WhileStmt {
+            condition: condition.unwrap(),
+            body: Box::new(body),
+        });
+        if let Some(init) = initializer {
+            body = Stmt::Block(BlockStmt {
+                statements: vec![init, body],
+            });
+        }
+
+        Ok(body)
     }
 
     // whileStmt      → "while" "(" expression ")" statement ;
