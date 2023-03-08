@@ -53,8 +53,11 @@ impl Parser {
     // statement      → exprStmt | ifStmt | printStmt | block ;
     // statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
     // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+    // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block | breakStmt;
     fn statement(&mut self) -> Result<Stmt, LoxResult> {
-        if self.is_match(&vec![TokenType::For]) {
+        if self.is_match(&vec![TokenType::Break]) {
+            self.break_statement()
+        } else if self.is_match(&vec![TokenType::For]) {
             self.for_statement()
         } else if self.is_match(&vec![TokenType::While]) {
             self.while_statement()
@@ -69,6 +72,12 @@ impl Parser {
         } else {
             self.expression_statement()
         }
+    }
+
+    // breakStmt      → "break" ";" ;
+    fn break_statement(&mut self) -> Result<Stmt, LoxResult> {
+        self.consume(TokenType::SemiColon, "expect `;` after break statement")?;
+        Ok(Stmt::Break(BreakStmt { u: 0 }))
     }
 
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement
@@ -134,9 +143,9 @@ impl Parser {
 
     // ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
     fn if_statement(&mut self) -> Result<Stmt, LoxResult> {
-        self.consume(TokenType::LeftParen, "parser error expect `(` after if")?;
+        self.consume(TokenType::LeftParen, "expect `(` after if")?;
         let condition = self.expression()?;
-        self.consume(TokenType::RightParen, "parser error expect `)`")?;
+        self.consume(TokenType::RightParen, "expect `)`")?;
         let then_branch = Box::new(self.statement()?);
 
         let else_branch = if self.is_match(&vec![TokenType::Else]) {

@@ -222,6 +222,8 @@ impl Scanner {
             "true" => Some(TokenType::True),
             "var" => Some(TokenType::Var),
             "while" => Some(TokenType::While),
+            "break" => Some(TokenType::Break),
+            "continue" => Some(TokenType::Continue),
             _ => None,
         }
     }

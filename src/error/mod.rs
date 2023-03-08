@@ -6,6 +6,7 @@ pub enum LoxResult {
     ParseError { token: Token, message: String },
     RuntimeError { token: Token, message: String },
     LoxError { line: usize, message: String },
+    Break,
 }
 
 // #[derive(Debug, Default)]
@@ -48,12 +49,13 @@ impl LoxResult {
                     eprintln!(
                         "[line: {} at `{}`], {}: {}",
                         token.line,
+                        token.as_string(),
                         loc,
-                        message,
-                        token.as_string()
+                        message
                     );
                 }
             }
+            _ => (),
         }
     }
 }

@@ -52,10 +52,18 @@ impl StmtVisitor<()> for Interpreter {
 
     fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<(), LoxResult> {
         while self.is_truthy(&self.evaluate(&stmt.condition)?) {
-            self.execute(&stmt.body)?;
+            match self.execute(&stmt.body) {
+                Err(LoxResult::Break) => break,
+                Err(e) => return Err(e),
+                Ok(_) => (),
+            }
         }
 
         Ok(())
+    }
+
+    fn visit_break_stmt(&self, stmt: &BreakStmt) -> Result<(), LoxResult> {
+        Err(LoxResult::Break)
     }
 }
 

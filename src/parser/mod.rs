@@ -72,14 +72,8 @@ impl Parser {
             return Ok(self.previous().unwrap());
         }
         let token = self.peek().unwrap();
-        let mut message = message.to_string();
-        if token.tk_type == TokenType::Eof {
-            message = format!("parser error at end {}", message);
-        } else {
-            message = format!("parser error at `{}` {}", token.lexeme, message);
-        }
 
-        Err(LoxResult::parse_error(token, message))
+        Err(LoxResult::parse_error(token, message.to_string()))
     }
 
     pub fn synchronize(&mut self) {

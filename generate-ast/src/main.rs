@@ -45,6 +45,7 @@ fn gen_stmt(output_dir: &str) {
         format!("If : Expr condition, Box<{base_name}> then_branch, Option<Box<{base_name}>> else_branch"),
         format!("Print : Expr expression"),
         format!("Var : Token name, Option<Expr> initializer"),
+        format!("Break : usize u"),
         format!("While : Expr condition, Box<{base_name}> body"),
     ];
     let notation = parse_notation(base_name, notation);
