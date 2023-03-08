@@ -39,13 +39,20 @@ impl LoxResult {
     pub fn report(&self, loc: &str) {
         match self {
             Self::LoxError { line, message } => {
-                eprintln!("[line: {}], {}: {}", line, loc, message)
+                eprintln!("[line: {}], {}: {}", line, loc, message);
             }
-            Self::ParseError { token, message } => {
-                eprintln!("[line: {}], {}: {}", token.line, loc, message)
-            }
-            Self::RuntimeError { token, message } => {
-                eprintln!("[line: {}], {}: {}", token.line, loc, message)
+            Self::ParseError { token, message } | Self::RuntimeError { token, message } => {
+                if token.is(crate::token_type::TokenType::Eof) {
+                    eprintln!("[line: {} at end], {}: {}", token.line, loc, message);
+                } else {
+                    eprintln!(
+                        "[line: {} at `{}`], {}: {}",
+                        token.line,
+                        loc,
+                        message,
+                        token.as_string()
+                    );
+                }
             }
         }
     }
