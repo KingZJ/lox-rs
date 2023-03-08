@@ -1,10 +1,11 @@
-scope 作用域
-作用域 -> 临近作用域
+## scope    environment.rs
+相关作用域 以 作用域 -> 父临近作用域 链状形式存储 block scope
 
 
+### block statement
 program        → declaration* EOF ;
 
-statement      → exprStmt | printStmt ;
+<!-- statement      → exprStmt | printStmt ; -->
 
 
 statement      → exprStmt | printStmt | block ;
