@@ -1,5 +1,6 @@
+use crate::core::Object;
 use crate::error::LoxResult;
-use crate::token::{Object, Token};
+use crate::token::Token;
 use crate::token_type::TokenType;
 
 // type Result<Vec<Token>> = std::result::Result<Vec<Token>, LoxError>;

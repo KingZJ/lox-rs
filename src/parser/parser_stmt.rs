@@ -1,9 +1,9 @@
 use super::Parser;
 
+use crate::core::*;
 use crate::error::LoxResult;
 use crate::expr::*;
 use crate::stmt::*;
-use crate::token::Object;
 use crate::token_type::TokenType;
 
 impl Parser {

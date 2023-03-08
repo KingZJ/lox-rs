@@ -1,3 +1,4 @@
+use crate::core::*;
 use crate::error::*;
 use crate::token::*;
 
@@ -9,6 +10,7 @@ pub enum Expr {
     Literal(LiteralExpr),
     Logical(LogicalExpr),
     Unary(UnaryExpr),
+    Call(CallExpr),
     Variable(VariableExpr),
 }
 
@@ -21,6 +23,7 @@ impl Expr {
             Expr::Literal(b) => b.accept(visitor),
             Expr::Logical(b) => b.accept(visitor),
             Expr::Unary(b) => b.accept(visitor),
+            Expr::Call(b) => b.accept(visitor),
             Expr::Variable(b) => b.accept(visitor),
         }
     }
@@ -60,6 +63,13 @@ pub struct LogicalExpr {
 pub struct UnaryExpr {
     pub operator: Token,
     pub right: Box<Expr>,
+}
+
+#[derive(Debug)]
+pub struct CallExpr {
+    pub callee: Box<Expr>,
+    pub paren: Token,
+    pub arguments: Vec<Expr>,
 }
 
 #[derive(Debug)]
@@ -103,6 +113,12 @@ impl UnaryExpr {
     }
 }
 
+impl CallExpr {
+    pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxResult> {
+        visitor.visit_call_expr(self)
+    }
+}
+
 impl VariableExpr {
     pub fn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxResult> {
         visitor.visit_variable_expr(self)
@@ -116,5 +132,6 @@ pub trait ExprVisitor<T> {
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<T, LoxResult>;
     fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<T, LoxResult>;
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<T, LoxResult>;
+    fn visit_call_expr(&self, expr: &CallExpr) -> Result<T, LoxResult>;
     fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<T, LoxResult>;
 }

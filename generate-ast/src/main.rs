@@ -15,10 +15,9 @@ fn main() {
     }
 
     let output_dir = args.get(1).unwrap();
-    // gen_expr(output_dir);
+    gen_expr(output_dir);
 
-    gen_stmt(output_dir);
-
+    // gen_stmt(output_dir);
 }
 
 fn gen_expr(output_dir: &str) {
@@ -30,10 +29,11 @@ fn gen_expr(output_dir: &str) {
         "Literal : Object value".to_owned(),
         format!("Logical : Box<{base_name}> left, Token operator, Box<{base_name}> right"),
         format!("Unary : Token operator, Box<{base_name}> right"),
+        format!("Call : Box<{base_name}> callee, Token paren, Vec<{base_name}> arguments"),
         "Variable : Token name".to_owned(),
     ];
     let notation = parse_notation(base_name, notation);
-    let import_mod = vec!["token", "error"];
+    let import_mod = vec!["core", "error", "token"];
     define_ast(output_dir, base_name, &notation, &import_mod).unwrap();
 }
 
@@ -49,7 +49,7 @@ fn gen_stmt(output_dir: &str) {
         format!("While : Expr condition, Box<{base_name}> body"),
     ];
     let notation = parse_notation(base_name, notation);
-    let import_mod = vec!["expr", "token", "error"];
+    let import_mod = vec!["error", "expr", "token"];
     define_ast(output_dir, base_name, &notation, &import_mod).unwrap();
 }
 

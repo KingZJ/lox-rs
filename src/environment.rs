@@ -2,10 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::{
-    error::LoxResult,
-    token::{Object, Token},
-};
+use crate::{core::Object, error::LoxResult, token::Token};
 
 #[derive(Debug, Default)]
 pub struct Environment {
@@ -66,7 +63,8 @@ mod test {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    use crate::token::{Object, Token};
+    use crate::core::Object;
+    use crate::token::Token;
     use crate::token_type::TokenType;
 
     use super::Environment;

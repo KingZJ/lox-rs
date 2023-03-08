@@ -1,6 +1,6 @@
+use crate::core::*;
 use crate::error::LoxResult;
 use crate::expr::*;
-use crate::token::Object;
 use crate::token_type::TokenType;
 
 use super::Parser;
@@ -156,6 +156,7 @@ impl Parser {
     }
 
     // unary          → ( "!" | "-" ) unary | primary ;
+    // unary          → ( "!" | "-" ) unary | call
     fn unary(&mut self) -> Result<Expr, LoxResult> {
         let unary_operators = vec![TokenType::Bang, TokenType::Minus];
         if self.is_match(&unary_operators) {
@@ -167,7 +168,62 @@ impl Parser {
             }));
         }
 
-        self.primary()
+        self.call()
+    }
+
+    // call           → primary ( "(" arguments? ")" )* ;
+    fn call(&mut self) -> Result<Expr, LoxResult> {
+        let mut expr = self.primary()?;
+
+        // while self.is_match(&vec![TokenType::LeftParen]) {
+        //     let mut arguments: Vec<Expr> = vec![];
+        //     if !self.is_expect(TokenType::RightParen) {
+        //         arguments = self.arguments()?;
+        //     }
+
+        //     let paren = self.consume(TokenType::RightParen, "expect `)` after arguments")?;
+        //     expr = Expr::Call(CallExpr { callee: Box::new(expr), paren, arguments })
+        // }
+
+        loop {
+            if self.is_match(&vec![TokenType::LeftParen]) {
+                expr = self.finish_call(Box::new(expr))?;
+            } else {
+                break;
+            }
+        }
+
+        Ok(expr)
+    }
+    fn finish_call(&mut self, callee: Box<Expr>) -> Result<Expr, LoxResult> {
+        let mut arguments: Vec<Expr> = vec![];
+        if !self.is_expect(TokenType::RightParen) {
+            arguments = self.arguments()?;
+        }
+        let paren = self.consume(TokenType::RightParen, "expect `)`")?;
+
+        Ok(Expr::Call(CallExpr {
+            callee,
+            paren,
+            arguments,
+        }))
+    }
+
+    // arguments      → expression ( "," expression )*
+    fn arguments(&mut self) -> Result<Vec<Expr>, LoxResult> {
+        let mut arguments: Vec<Expr> = vec![];
+        arguments.push(self.expression()?);
+        while self.is_match(&vec![TokenType::Comma]) {
+            if arguments.len() >= 255 {
+                return Err(LoxResult::parse_error(
+                    self.peek().unwrap(),
+                    "can't have more than 255 arguments".to_string(),
+                ));
+            }
+            arguments.push(self.expression()?);
+        }
+
+        Ok(arguments)
     }
 
     // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;

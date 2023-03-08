@@ -1,9 +1,9 @@
 // use std::rc::Rc;
 
+use crate::core::Object;
 use crate::environment::Environment;
 use crate::error::LoxResult;
 use crate::stmt::*;
-use crate::token::Object;
 
 use super::Interpreter;
 

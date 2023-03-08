@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{environment::Environment, error::LoxResult, expr::Expr, stmt::Stmt, token::Object};
+use crate::core::*;
+use crate::{environment::Environment, error::LoxResult, expr::Expr, stmt::Stmt};
 
 mod expr_interpreter;
 mod stmt_interpreter;

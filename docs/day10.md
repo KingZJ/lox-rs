@@ -37,3 +37,9 @@ blockStmt {
 
 
 ### break statement
+
+
+### call 函数调用
+unary          → ( "!" | "-" ) unary | call ;
+call           → primary ( "(" arguments? ")" )* ;
+arguments      → expression ( "," expression )* ;

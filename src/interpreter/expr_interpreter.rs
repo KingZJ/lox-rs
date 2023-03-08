@@ -1,6 +1,7 @@
+use crate::core::*;
 use crate::error::LoxResult;
 use crate::expr::*;
-use crate::token::{Object, Token};
+use crate::token::*;
 use crate::token_type::TokenType;
 
 use super::Interpreter;
@@ -87,6 +88,24 @@ impl ExprVisitor<Object> for Interpreter {
             self.evaluate(&expr.right)
         }
     }
+
+    fn visit_call_expr(&self, expr: &CallExpr) -> Result<Object, LoxResult> {
+        let callee = self.evaluate(&expr.callee)?;
+
+        let mut arguments: Vec<Object> = vec![];
+        for argument in expr.arguments.iter() {
+            arguments.push(self.evaluate(argument)?);
+        }
+
+        if let Object::Func(f) = callee {
+            f.call(self, arguments)
+        } else {
+            Err(LoxResult::runtime_error(
+                &expr.paren,
+                "can only call function/method".to_string(),
+            ))
+        }
+    }
 }
 
 impl Interpreter {
@@ -156,8 +175,9 @@ impl Interpreter {
 #[cfg(test)]
 mod test {
     use crate::{
+        core::Object,
         expr::{BinaryExpr, Expr},
-        token::{Object, Token},
+        token::Token,
         token_type::TokenType,
     };
 
