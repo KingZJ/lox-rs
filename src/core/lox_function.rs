@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, cell::RefCell};
 
 use crate::environment::Environment;
 use crate::error::LoxResult;
@@ -12,14 +12,16 @@ pub struct LoxFunction {
     params: Rc<Vec<Token>>,
     name: Token,
     body: Rc<Vec<Stmt>>,
+    closure: Rc<RefCell<Environment>>,
 }
 
 impl LoxFunction {
-    pub fn new(declaration: &FunctionStmt) -> Self {
+    pub fn new(declaration: &FunctionStmt, closure: &Rc<RefCell<Environment>>) -> Self {
         Self {
             params: declaration.params.clone(),
             name: declaration.name.clone(),
             body: declaration.body.clone(),
+            closure: closure.clone(),
         }
     }
 }
@@ -36,7 +38,7 @@ impl Callable for LoxFunction {
     }
 
     fn call(&self, interpreter: &Interpreter, arguments: Vec<Object>) -> Result<Object, LoxResult> {
-        let mut environment = Environment::new_enclosing(interpreter.globals.clone());
+        let mut environment = Environment::new_enclosing(self.closure.clone());
 
         for (param, value) in self.params.iter().zip(arguments.into_iter()) {
             environment.define(param.as_string(), value)

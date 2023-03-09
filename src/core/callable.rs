@@ -26,7 +26,8 @@ impl Debug for LoxCallable {
 
 impl PartialEq for LoxCallable {
     fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.func, &other.func)
+        // Rc::ptr_eq(&self.func, &other.func)
+        std::ptr::eq(&self.func, &other.func)
     }
 }
 
