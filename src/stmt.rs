@@ -11,6 +11,7 @@ pub enum Stmt {
     If(IfStmt),
     Print(PrintStmt),
     Var(VarStmt),
+    Return(ReturnStmt),
     Break(BreakStmt),
     While(WhileStmt),
 }
@@ -24,6 +25,7 @@ impl Stmt {
             Stmt::If(b) => b.accept(visitor),
             Stmt::Print(b) => b.accept(visitor),
             Stmt::Var(b) => b.accept(visitor),
+            Stmt::Return(b) => b.accept(visitor),
             Stmt::Break(b) => b.accept(visitor),
             Stmt::While(b) => b.accept(visitor),
         }
@@ -63,6 +65,12 @@ pub struct PrintStmt {
 pub struct VarStmt {
     pub name: Token,
     pub initializer: Option<Expr>,
+}
+
+#[derive(Debug)]
+pub struct ReturnStmt {
+    pub name: Token,
+    pub value: Option<Expr>,
 }
 
 #[derive(Debug)]
@@ -112,6 +120,12 @@ impl VarStmt {
     }
 }
 
+impl ReturnStmt {
+    pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
+        visitor.visit_return_stmt(self)
+    }
+}
+
 impl BreakStmt {
     pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
         visitor.visit_break_stmt(self)
@@ -131,6 +145,7 @@ pub trait StmtVisitor<T> {
     fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<T, LoxResult>;
     fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<T, LoxResult>;
     fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<T, LoxResult>;
+    fn visit_return_stmt(&self, stmt: &ReturnStmt) -> Result<T, LoxResult>;
     fn visit_break_stmt(&self, stmt: &BreakStmt) -> Result<T, LoxResult>;
     fn visit_while_stmt(&self, stmt: &WhileStmt) -> Result<T, LoxResult>;
 }

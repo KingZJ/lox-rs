@@ -4,6 +4,7 @@ use crate::core::*;
 use crate::error::*;
 use crate::interpreter::Interpreter;
 
+#[derive(Default)]
 pub struct NativeClock {}
 
 impl NativeClock {
@@ -14,7 +15,7 @@ impl NativeClock {
 
 impl ToString for NativeClock {
     fn to_string(&self) -> String {
-        format!("<func clock>")
+        "<func clock>".to_string()
     }
 }
 

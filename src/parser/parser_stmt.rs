@@ -111,8 +111,11 @@ impl Parser {
     // statement      → exprStmt | ifStmt | printStmt | whileStmt | block ;
     // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
     // statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block | breakStmt;
+    // statement      → exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block ;
     fn statement(&mut self) -> Result<Stmt, LoxResult> {
-        if self.is_match(&vec![TokenType::Break]) {
+        if self.is_match(&vec![TokenType::Return]) {
+            self.return_statement()
+        } else if self.is_match(&vec![TokenType::Break]) {
             self.break_statement()
         } else if self.is_match(&vec![TokenType::For]) {
             self.for_statement()
@@ -129,6 +132,19 @@ impl Parser {
         } else {
             self.expression_statement()
         }
+    }
+
+    // returnStmt     → "return" expression? ";" ;
+    fn return_statement(&mut self) -> Result<Stmt, LoxResult> {
+        let name = self.previous().unwrap();
+        let value = if self.is_expect(TokenType::SemiColon) {
+            None
+        } else {
+            Some(self.expression()?)
+        };
+        self.consume(TokenType::SemiColon, "expect `;` after return")?;
+
+        Ok(Stmt::Return(ReturnStmt { name, value }))
     }
 
     // breakStmt      → "break" ";" ;

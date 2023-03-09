@@ -1,4 +1,4 @@
-use crate::token::Token;
+use crate::{core::Object, token::Token};
 
 #[derive(Debug)]
 pub enum LoxResult {
@@ -7,6 +7,7 @@ pub enum LoxResult {
     RuntimeError { token: Token, message: String },
     LoxError { line: usize, message: String },
     SystemError { message: String },
+    Return { value: Object },
     Break,
 }
 
@@ -38,11 +39,15 @@ impl LoxResult {
         err
     }
 
-    pub fn system_error(message: String) -> LoxResult {
+    pub fn system_error(message: String) -> Self {
         let err = Self::SystemError { message };
         err.report("System Error");
 
         err
+    }
+
+    pub fn return_error(value: Object) -> Self {
+        Self::Return { value }
     }
 
     pub fn report(&self, loc: &str) {

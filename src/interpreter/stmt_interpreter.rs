@@ -79,6 +79,16 @@ impl StmtVisitor<()> for Interpreter {
 
         Ok(())
     }
+
+    fn visit_return_stmt(&self, stmt: &ReturnStmt) -> Result<(), LoxResult> {
+        let value = if let Some(ref expr) = stmt.value {
+            self.evaluate(expr)?
+        } else {
+            Object::Nil
+        };
+
+        Err(LoxResult::return_error(value))
+    }
 }
 
 #[cfg(test)]
