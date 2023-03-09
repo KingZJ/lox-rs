@@ -14,13 +14,13 @@ pub struct LoxCallable {
 
 impl Display for LoxCallable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<callable>")
+        write!(f, "{}", self.func.to_string())
     }
 }
 
 impl Debug for LoxCallable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<callable>")
+        write!(f, "{:?}", self.func.to_string())
     }
 }
 
@@ -40,7 +40,7 @@ impl Callable for LoxCallable {
     }
 }
 
-pub trait Callable {
+pub trait Callable: ToString {
     fn call(&self, interpreter: &Interpreter, arguments: Vec<Object>) -> Result<Object, LoxResult>;
 
     // 函数中的参数个数

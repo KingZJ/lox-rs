@@ -12,6 +12,12 @@ impl NativeClock {
     }
 }
 
+impl ToString for NativeClock {
+    fn to_string(&self) -> String {
+        format!("<func clock>")
+    }
+}
+
 impl Callable for NativeClock {
     fn arity(&self) -> usize {
         0

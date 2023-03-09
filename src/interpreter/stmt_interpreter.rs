@@ -1,6 +1,8 @@
 // use std::rc::Rc;
 
-use crate::core::Object;
+use std::rc::Rc;
+
+use crate::core::{LoxCallable, LoxFunction, Object};
 use crate::environment::Environment;
 use crate::error::LoxResult;
 use crate::stmt::*;
@@ -62,8 +64,20 @@ impl StmtVisitor<()> for Interpreter {
         Ok(())
     }
 
-    fn visit_break_stmt(&self, stmt: &BreakStmt) -> Result<(), LoxResult> {
+    fn visit_break_stmt(&self, _stmt: &BreakStmt) -> Result<(), LoxResult> {
         Err(LoxResult::Break)
+    }
+
+    fn visit_function_stmt(&self, stmt: &FunctionStmt) -> Result<(), LoxResult> {
+        let function = LoxFunction::new(stmt);
+        self.environment.borrow().borrow_mut().define(
+            stmt.name.as_string(),
+            Object::Func(LoxCallable {
+                func: Rc::new(function),
+            }),
+        );
+
+        Ok(())
     }
 }
 

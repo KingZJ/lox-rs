@@ -15,9 +15,9 @@ fn main() {
     }
 
     let output_dir = args.get(1).unwrap();
-    gen_expr(output_dir);
+    // gen_expr(output_dir);
 
-    // gen_stmt(output_dir);
+    gen_stmt(output_dir);
 }
 
 fn gen_expr(output_dir: &str) {
@@ -42,6 +42,7 @@ fn gen_stmt(output_dir: &str) {
     let notation = vec![
         format!("Block : Vec<{base_name}> statements"),
         format!("Expression : Expr expression"),
+        format!("Function : Token name, Rc<Vec<Token>> params, Rc<Vec<{base_name}>> body"),
         format!("If : Expr condition, Box<{base_name}> then_branch, Option<Box<{base_name}>> else_branch"),
         format!("Print : Expr expression"),
         format!("Var : Token name, Option<Expr> initializer"),
@@ -49,7 +50,7 @@ fn gen_stmt(output_dir: &str) {
         format!("While : Expr condition, Box<{base_name}> body"),
     ];
     let notation = parse_notation(base_name, notation);
-    let import_mod = vec!["error", "expr", "token"];
+    let import_mod = vec!["error", "expr", "rc", "token"];
     define_ast(output_dir, base_name, &notation, &import_mod).unwrap();
 }
 
@@ -89,7 +90,11 @@ fn define_ast(
     let mut buffer = io::BufWriter::new(f);
 
     for mod_name in import_mod {
-        writeln!(buffer, "use crate::{mod_name}::*;")?;
+        if mod_name == &"rc" {
+            writeln!(buffer, "use std::rc::Rc;")?;
+        } else {
+            writeln!(buffer, "use crate::{mod_name}::*;")?;
+        }
     }
 
     define_enum(&mut buffer, base_name, notation)?;

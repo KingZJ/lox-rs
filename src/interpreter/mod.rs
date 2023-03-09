@@ -51,16 +51,16 @@ impl Interpreter {
     }
 
     // 语句执行器
-    fn execute(&self, stmt: &Stmt) -> Result<(), LoxResult> {
+    pub fn execute(&self, stmt: &Stmt) -> Result<(), LoxResult> {
         stmt.accept(self)
     }
 
     // 表达式解释器
-    fn evaluate(&self, expr: &Expr) -> Result<Object, LoxResult> {
+    pub fn evaluate(&self, expr: &Expr) -> Result<Object, LoxResult> {
         expr.accept(self)
     }
 
-    fn execute_block(
+    pub fn execute_block(
         &self,
         statements: &[Stmt],
         environment: Environment,

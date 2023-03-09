@@ -1,9 +1,12 @@
+use std::rc::Rc;
+
 use super::Parser;
 
 use crate::core::*;
 use crate::error::LoxResult;
 use crate::expr::*;
 use crate::stmt::*;
+use crate::token::Token;
 use crate::token_type::TokenType;
 
 impl Parser {
@@ -18,9 +21,12 @@ impl Parser {
     }
 
     //  declaration    → varDecl | statement ;
+    //  declaration    → funDecl | varDecl | statement ;
     fn declaration(&mut self) -> Result<Stmt, LoxResult> {
         let result = if self.is_match(&vec![TokenType::Var]) {
             self.var_declaration()
+        } else if self.is_match(&vec![TokenType::Func]) {
+            self.func_declaration()
         } else {
             self.statement()
         };
@@ -30,6 +36,57 @@ impl Parser {
         }
 
         result
+    }
+
+    // funDecl        → "fun" function ;
+    fn func_declaration(&mut self) -> Result<Stmt, LoxResult> {
+        self.function("function")
+    }
+
+    // function       → IDENTIFIER "(" parameters? ")" block ;
+    fn function(&mut self, kind: &str) -> Result<Stmt, LoxResult> {
+        let name = self.consume(TokenType::Identifier, &format!("expect a {kind} name"))?;
+
+        self.consume(
+            TokenType::LeftParen,
+            &format!("expect `(` after {kind} name"),
+        )?;
+        let mut params: Vec<Token> = vec![];
+        if !self.is_expect(TokenType::RightParen) {
+            params = self.parameters()?;
+        }
+        self.consume(TokenType::RightParen, "expect `)` after parameters")?;
+
+        // block          → "{" declaration* "}" ; 逻辑与statement 中判断block处理一致，须先将 `{` 匹配处理
+        self.consume(
+            TokenType::LeftBrace,
+            &format!("expect `{{` before {kind} body"),
+        )?;
+        let body = Rc::new(self.block()?);
+
+        Ok(Stmt::Function(FunctionStmt {
+            name,
+            params: Rc::new(params),
+            body,
+        }))
+    }
+
+    // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+    fn parameters(&mut self) -> Result<Vec<Token>, LoxResult> {
+        let mut params: Vec<Token> = vec![];
+        params.push(self.consume(TokenType::Identifier, "expect a param name")?);
+
+        while self.is_match(&vec![TokenType::Comma]) {
+            if params.len() >= 255 {
+                return Err(LoxResult::runtime_error(
+                    &self.peek().unwrap(),
+                    "can't have more than 255 parameters".to_owned(),
+                ));
+            }
+            params.push(self.consume(TokenType::Identifier, "expect a param name")?);
+        }
+
+        Ok(params)
     }
 
     //  varDecl        → "var" IDENTIFIER ( "=" expression )? ";"

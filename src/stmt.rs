@@ -1,11 +1,13 @@
 use crate::error::*;
 use crate::expr::*;
 use crate::token::*;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Stmt {
     Block(BlockStmt),
     Expression(ExpressionStmt),
+    Function(FunctionStmt),
     If(IfStmt),
     Print(PrintStmt),
     Var(VarStmt),
@@ -18,6 +20,7 @@ impl Stmt {
         match self {
             Stmt::Block(b) => b.accept(visitor),
             Stmt::Expression(b) => b.accept(visitor),
+            Stmt::Function(b) => b.accept(visitor),
             Stmt::If(b) => b.accept(visitor),
             Stmt::Print(b) => b.accept(visitor),
             Stmt::Var(b) => b.accept(visitor),
@@ -35,6 +38,13 @@ pub struct BlockStmt {
 #[derive(Debug)]
 pub struct ExpressionStmt {
     pub expression: Expr,
+}
+
+#[derive(Debug)]
+pub struct FunctionStmt {
+    pub name: Token,
+    pub params: Rc<Vec<Token>>,
+    pub body: Rc<Vec<Stmt>>,
 }
 
 #[derive(Debug)]
@@ -78,6 +88,12 @@ impl ExpressionStmt {
     }
 }
 
+impl FunctionStmt {
+    pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
+        visitor.visit_function_stmt(self)
+    }
+}
+
 impl IfStmt {
     pub fn accept<T>(&self, visitor: &dyn StmtVisitor<T>) -> Result<T, LoxResult> {
         visitor.visit_if_stmt(self)
@@ -111,6 +127,7 @@ impl WhileStmt {
 pub trait StmtVisitor<T> {
     fn visit_block_stmt(&self, stmt: &BlockStmt) -> Result<T, LoxResult>;
     fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<T, LoxResult>;
+    fn visit_function_stmt(&self, stmt: &FunctionStmt) -> Result<T, LoxResult>;
     fn visit_if_stmt(&self, stmt: &IfStmt) -> Result<T, LoxResult>;
     fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<T, LoxResult>;
     fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<T, LoxResult>;
