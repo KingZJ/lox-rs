@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::core::*;
 use crate::error::LoxResult;
 use crate::expr::*;
@@ -38,7 +40,7 @@ impl Parser {
 
                 return Ok(Expr::Assign(AssignExpr {
                     name,
-                    value: Box::new(value),
+                    value: Rc::new(value),
                 }));
             }
 
@@ -56,9 +58,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.logic_and()?;
             left = Expr::Logical(LogicalExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -73,9 +75,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.equality()?;
             left = Expr::Logical(LogicalExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -90,9 +92,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.comparison()?;
             left = Expr::Binary(BinaryExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -112,9 +114,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.term()?;
             left = Expr::Binary(BinaryExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -129,9 +131,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.factor()?;
             left = Expr::Binary(BinaryExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -146,9 +148,9 @@ impl Parser {
             let operator = self.previous().unwrap();
             let right = self.unary()?;
             left = Expr::Binary(BinaryExpr {
-                left: Box::new(left),
+                left: Rc::new(left),
                 operator,
-                right: Box::new(right),
+                right: Rc::new(right),
             });
         }
 
@@ -162,13 +164,13 @@ impl Parser {
         if self.is_match(&unary_operators) {
             let operator = self.previous().unwrap();
             let right = self.unary()?;
-            return Ok(Expr::Unary(UnaryExpr {
+            Ok(Expr::Unary(UnaryExpr {
                 operator,
-                right: Box::new(right),
-            }));
+                right: Rc::new(right),
+            }))
+        } else {
+            self.call()
         }
-
-        self.call()
     }
 
     // call           → primary ( "(" arguments? ")" )* ;
@@ -176,18 +178,18 @@ impl Parser {
         let mut expr = self.primary()?;
 
         // while self.is_match(&vec![TokenType::LeftParen]) {
-        //     let mut arguments: Vec<Expr> = vec![];
+        //     let mut arguments: Vec<Rc<Expr>> = vec![];
         //     if !self.is_expect(TokenType::RightParen) {
         //         arguments = self.arguments()?;
         //     }
 
         //     let paren = self.consume(TokenType::RightParen, "expect `)` after arguments")?;
-        //     expr = Expr::Call(CallExpr { callee: Box::new(expr), paren, arguments })
+        //     expr = Expr::Call(CallExpr { callee: Rc::new(expr), paren, arguments })
         // }
 
         loop {
             if self.is_match(&vec![TokenType::LeftParen]) {
-                expr = self.finish_call(Box::new(expr))?;
+                expr = self.finish_call(Rc::new(expr))?;
             } else {
                 break;
             }
@@ -195,8 +197,8 @@ impl Parser {
 
         Ok(expr)
     }
-    fn finish_call(&mut self, callee: Box<Expr>) -> Result<Expr, LoxResult> {
-        let mut arguments: Vec<Expr> = vec![];
+    fn finish_call(&mut self, callee: Rc<Expr>) -> Result<Expr, LoxResult> {
+        let mut arguments: Vec<Rc<Expr>> = vec![];
         if !self.is_expect(TokenType::RightParen) {
             arguments = self.arguments()?;
         }
@@ -210,9 +212,9 @@ impl Parser {
     }
 
     // arguments      → expression ( "," expression )*
-    fn arguments(&mut self) -> Result<Vec<Expr>, LoxResult> {
-        let mut arguments: Vec<Expr> = vec![];
-        arguments.push(self.expression()?);
+    fn arguments(&mut self) -> Result<Vec<Rc<Expr>>, LoxResult> {
+        let mut arguments: Vec<Rc<Expr>> = vec![];
+        arguments.push(Rc::new(self.expression()?));
         while self.is_match(&vec![TokenType::Comma]) {
             if arguments.len() >= 255 {
                 return Err(LoxResult::parse_error(
@@ -220,7 +222,7 @@ impl Parser {
                     "can't have more than 255 arguments".to_string(),
                 ));
             }
-            arguments.push(self.expression()?);
+            arguments.push(Rc::new(self.expression()?));
         }
 
         Ok(arguments)
@@ -249,7 +251,7 @@ impl Parser {
             let expr = self.expression()?;
             self.consume(TokenType::RightParen, "expect `)` after expression")?;
             Ok(Expr::Grouping(GroupingExpr {
-                expression: Box::new(expr),
+                expression: Rc::new(expr),
             }))
         } else {
             let token = self.peek().unwrap();

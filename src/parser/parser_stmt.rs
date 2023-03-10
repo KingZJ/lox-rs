@@ -93,7 +93,7 @@ impl Parser {
     fn var_declaration(&mut self) -> Result<Stmt, LoxResult> {
         let name = self.consume(TokenType::Identifier, "expect variable name")?;
         let initializer = if self.is_match(&vec![TokenType::Equal]) {
-            Some(self.expression()?)
+            Some(Rc::new(self.expression()?))
         } else {
             None
         };
@@ -125,7 +125,7 @@ impl Parser {
             self.if_statement()
         } else if self.is_match(&vec![TokenType::LeftBrace]) {
             Ok(Stmt::Block(BlockStmt {
-                statements: self.block()?,
+                statements: Rc::new(self.block()?),
             }))
         } else if self.is_match(&vec![TokenType::Print]) {
             self.print_statement()
@@ -140,7 +140,7 @@ impl Parser {
         let value = if self.is_expect(TokenType::SemiColon) {
             None
         } else {
-            Some(self.expression()?)
+            Some(Rc::new(self.expression()?))
         };
         self.consume(TokenType::SemiColon, "expect `;` after return")?;
 
@@ -184,16 +184,21 @@ impl Parser {
         let mut body = self.statement()?;
         if let Some(expression) = increment {
             body = Stmt::Block(BlockStmt {
-                statements: vec![body, Stmt::Expression(ExpressionStmt { expression })],
+                statements: Rc::new(vec![
+                    Rc::new(body),
+                    Rc::new(Stmt::Expression(ExpressionStmt {
+                        expression: Rc::new(expression),
+                    })),
+                ]),
             })
         }
         body = Stmt::While(WhileStmt {
-            condition: condition.unwrap(),
-            body: Box::new(body),
+            condition: Rc::new(condition.unwrap()),
+            body: Rc::new(body),
         });
         if let Some(init) = initializer {
             body = Stmt::Block(BlockStmt {
-                statements: vec![init, body],
+                statements: Rc::new(vec![Rc::new(init), Rc::new(body)]),
             });
         }
 
@@ -203,15 +208,12 @@ impl Parser {
     // whileStmt      → "while" "(" expression ")" statement ;
     fn while_statement(&mut self) -> Result<Stmt, LoxResult> {
         self.consume(TokenType::LeftParen, "expect `(` after while")?;
-        let condition = self.expression()?;
+        let condition = Rc::new(self.expression()?);
         self.consume(TokenType::RightParen, "expect `)` after condition")?;
 
-        let body = self.statement()?;
+        let body = Rc::new(self.statement()?);
 
-        Ok(Stmt::While(WhileStmt {
-            condition,
-            body: Box::new(body),
-        }))
+        Ok(Stmt::While(WhileStmt { condition, body }))
     }
 
     // ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
@@ -219,10 +221,10 @@ impl Parser {
         self.consume(TokenType::LeftParen, "expect `(` after if")?;
         let condition = self.expression()?;
         self.consume(TokenType::RightParen, "expect `)`")?;
-        let then_branch = Box::new(self.statement()?);
+        let then_branch = Rc::new(self.statement()?);
 
         let else_branch = if self.is_match(&vec![TokenType::Else]) {
-            Some(Box::new(self.statement()?))
+            Some(Rc::new(self.statement()?))
         } else {
             None
         };
@@ -235,10 +237,10 @@ impl Parser {
     }
 
     // block          → "{" declaration* "}" ;
-    fn block(&mut self) -> Result<Vec<Stmt>, LoxResult> {
-        let mut statements: Vec<Stmt> = vec![];
+    fn block(&mut self) -> Result<Vec<Rc<Stmt>>, LoxResult> {
+        let mut statements: Vec<Rc<Stmt>> = vec![];
         while !self.is_expect(TokenType::RightBrace) && !self.is_at_end() {
-            statements.push(self.declaration()?);
+            statements.push(Rc::new(self.declaration()?));
         }
 
         self.consume(TokenType::RightBrace, "expected `}`")?;
@@ -248,14 +250,14 @@ impl Parser {
 
     // printStmt      → "print" expression ";"
     fn print_statement(&mut self) -> Result<Stmt, LoxResult> {
-        let expression = self.expression()?;
+        let expression = Rc::new(self.expression()?);
         self.consume(TokenType::SemiColon, "expect `;` after expression")?;
         Ok(Stmt::Print(PrintStmt { expression }))
     }
 
     // exprStmt       → expression ";"
     fn expression_statement(&mut self) -> Result<Stmt, LoxResult> {
-        let expression = self.expression()?;
+        let expression = Rc::new(self.expression()?);
         self.consume(TokenType::SemiColon, "expect `;` after expression")?;
         Ok(Stmt::Expression(ExpressionStmt { expression }))
     }

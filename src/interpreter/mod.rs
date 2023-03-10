@@ -62,7 +62,7 @@ impl Interpreter {
 
     pub fn execute_block(
         &self,
-        statements: &[Stmt],
+        statements: &[Rc<Stmt>],
         environment: Environment,
     ) -> Result<(), LoxResult> {
         let e = Rc::new(RefCell::new(environment));

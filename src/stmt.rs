@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::expr::*;
 use crate::token::*;
+
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -34,43 +35,43 @@ impl Stmt {
 
 #[derive(Debug)]
 pub struct BlockStmt {
-    pub statements: Vec<Stmt>,
+    pub statements: Rc<Vec<Rc<Stmt>>>,
 }
 
 #[derive(Debug)]
 pub struct ExpressionStmt {
-    pub expression: Expr,
+    pub expression: Rc<Expr>,
 }
 
 #[derive(Debug)]
 pub struct FunctionStmt {
     pub name: Token,
     pub params: Rc<Vec<Token>>,
-    pub body: Rc<Vec<Stmt>>,
+    pub body: Rc<Vec<Rc<Stmt>>>,
 }
 
 #[derive(Debug)]
 pub struct IfStmt {
     pub condition: Expr,
-    pub then_branch: Box<Stmt>,
-    pub else_branch: Option<Box<Stmt>>,
+    pub then_branch: Rc<Stmt>,
+    pub else_branch: Option<Rc<Stmt>>,
 }
 
 #[derive(Debug)]
 pub struct PrintStmt {
-    pub expression: Expr,
+    pub expression: Rc<Expr>,
 }
 
 #[derive(Debug)]
 pub struct VarStmt {
     pub name: Token,
-    pub initializer: Option<Expr>,
+    pub initializer: Option<Rc<Expr>>,
 }
 
 #[derive(Debug)]
 pub struct ReturnStmt {
     pub name: Token,
-    pub value: Option<Expr>,
+    pub value: Option<Rc<Expr>>,
 }
 
 #[derive(Debug)]
@@ -80,8 +81,8 @@ pub struct BreakStmt {
 
 #[derive(Debug)]
 pub struct WhileStmt {
-    pub condition: Expr,
-    pub body: Box<Stmt>,
+    pub condition: Rc<Expr>,
+    pub body: Rc<Stmt>,
 }
 
 impl BlockStmt {

@@ -11,7 +11,7 @@ use super::{Callable, Object};
 pub struct LoxFunction {
     params: Rc<Vec<Token>>,
     name: Token,
-    body: Rc<Vec<Stmt>>,
+    body: Rc<Vec<Rc<Stmt>>>,
     closure: Rc<RefCell<Environment>>,
 }
 

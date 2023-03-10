@@ -1,11 +1,6 @@
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{
-    error::LoxResult,
-    expr::Expr,
-    interpreter::Interpreter,
-    stmt::Stmt, token::Token,
-};
+use crate::{error::LoxResult, expr::Expr, interpreter::Interpreter, stmt::Stmt, token::Token};
 
 mod expr_resolver;
 mod stmt_resolver;
@@ -23,7 +18,7 @@ impl Resolver {
         }
     }
 
-    pub fn resolve(&self, statements: &[Stmt]) -> Result<(), LoxResult>{
+    pub fn resolve(&self, statements: &[Rc<Stmt>]) -> Result<(), LoxResult> {
         for stmt in statements {
             self.resolve_stmt(stmt)?;
         }
@@ -49,13 +44,23 @@ impl Resolver {
 
     fn declare(&self, token: &Token) {
         if !self.scopes.borrow().is_empty() {
-            self.scopes.borrow().last().unwrap().borrow_mut().insert(token.as_string(), false);
+            self.scopes
+                .borrow()
+                .last()
+                .unwrap()
+                .borrow_mut()
+                .insert(token.as_string(), false);
         }
     }
 
     fn define(&self, token: &Token) {
         if !self.scopes.borrow().is_empty() {
-            self.scopes.borrow().last().unwrap().borrow_mut().insert(token.as_string(), true);
+            self.scopes
+                .borrow()
+                .last()
+                .unwrap()
+                .borrow_mut()
+                .insert(token.as_string(), true);
         }
     }
 }

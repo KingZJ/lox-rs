@@ -181,6 +181,8 @@ impl Interpreter {
 
 #[cfg(test)]
 mod test {
+    use std::rc::Rc;
+
     use crate::{
         core::Object,
         expr::{BinaryExpr, Expr},
@@ -190,8 +192,8 @@ mod test {
 
     use super::Interpreter;
 
-    fn make_literal(value: Object) -> Box<Expr> {
-        Box::new(Expr::Literal(crate::expr::LiteralExpr { value }))
+    fn make_literal(value: Object) -> Rc<Expr> {
+        Rc::new(Expr::Literal(crate::expr::LiteralExpr { value }))
     }
 
     #[test]

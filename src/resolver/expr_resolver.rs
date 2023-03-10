@@ -4,35 +4,35 @@ use crate::expr::*;
 use super::Resolver;
 
 impl ExprVisitor<()> for Resolver {
-    fn visit_assign_expr(&self, expr: &AssignExpr) -> Result<(), LoxResult> {
+    fn visit_assign_expr(&self, _expr: &AssignExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<(), LoxResult> {
+    fn visit_binary_expr(&self, _expr: &BinaryExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_call_expr(&self, expr: &CallExpr) -> Result<(), LoxResult> {
+    fn visit_call_expr(&self, _expr: &CallExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<(), LoxResult> {
+    fn visit_grouping_expr(&self, _expr: &GroupingExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<(), LoxResult> {
+    fn visit_literal_expr(&self, _expr: &LiteralExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_logical_expr(&self, expr: &LogicalExpr) -> Result<(), LoxResult> {
+    fn visit_logical_expr(&self, _expr: &LogicalExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<(), LoxResult> {
+    fn visit_unary_expr(&self, _expr: &UnaryExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 
-    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<(), LoxResult> {
+    fn visit_variable_expr(&self, _expr: &VariableExpr) -> Result<(), LoxResult> {
         Ok(())
     }
 }
