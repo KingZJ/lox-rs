@@ -12,3 +12,4 @@ pub mod environment;
 pub mod stmt;
 
 pub mod native;
+pub mod resolver;
